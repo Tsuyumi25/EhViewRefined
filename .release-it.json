@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "before:init": "git switch main"
+  },
+  "git": {
+    "commitMessage": "chore(release): 發布 v${version}",
+    "tagName": "v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": false
+  }
+}

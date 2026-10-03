@@ -1,0 +1,268 @@
+.evr-scope {
+  --evr-fs-lg: 13px;
+  --evr-radius-sm: 3px;
+  --evr-border-width: 2px;
+  --evr-ctrl-h: 25px;
+  --evr-ctrl-gap: 4px;
+  --evr-ctrl-padding: 6px;
+  --evr-ctrl-margin: 0 1px 1px;
+  --evr-popup-width: 24rem;
+  --evr-popup-padding: 1.25rem;
+  --evr-z-overlay: 99999;
+  --evr-transition-base: background 0.15s, border-color 0.15s, color 0.15s;
+
+  --evr-bg: #edebdf;
+  --evr-bg-hover: rgba(0, 0, 0, 0.06);
+  --evr-bg-active: #ddd8c8;
+  --evr-bg-btn: #edeada;
+  --evr-bg-btn-hover: #e2dfcf;
+  --evr-text: #5c0d12;
+  --evr-text-hint: #8a8271;
+  --evr-text-on-color: #fff;
+  --evr-border: #b5a4a4;
+  --evr-overlay: rgba(0, 0, 0, 0.4);
+  --evr-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --evr-green: #4a7c59;
+
+  color: var(--evr-text);
+  font-size: var(--evr-fs-lg);
+  text-align: left;
+}
+
+.evr-scope--dark {
+  --evr-bg: #4f535b;
+  --evr-bg-hover: rgba(255, 255, 255, 0.06);
+  --evr-bg-active: #5e636c;
+  --evr-bg-btn: #34353b;
+  --evr-bg-btn-hover: #3e3f45;
+  --evr-text: #ddd;
+  --evr-text-hint: #b0b0b0;
+  --evr-border: #8d8d8d;
+  --evr-overlay: rgba(0, 0, 0, 0.6);
+  --evr-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --evr-green: #5a9a6a;
+}
+
+/* The site sets content-box plus form-control defaults globally; reset inside
+   our own trees only. */
+.evr-scope,
+.evr-scope *,
+.evr-scope *::before,
+.evr-scope *::after {
+  box-sizing: border-box;
+}
+
+.evr-scope :where(button) {
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: 1.4;
+}
+
+
+.searchnav select:has(+ .evr-settings-host) {
+  vertical-align: middle;
+}
+
+.evr-settings-host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.evr-settings-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--evr-ctrl-gap);
+  height: var(--evr-ctrl-h);
+  margin: var(--evr-ctrl-margin);
+  padding: 0 var(--evr-ctrl-padding);
+  font: inherit;
+  white-space: nowrap;
+  border: var(--evr-border-width) solid var(--evr-border);
+  border-radius: var(--evr-radius-sm);
+  background: var(--evr-bg-btn);
+  color: var(--evr-text);
+  cursor: pointer;
+  transition: var(--evr-transition-base);
+}
+
+.evr-settings-button:hover {
+  background: var(--evr-bg-hover);
+}
+
+
+.evr-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--evr-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--evr-overlay);
+}
+
+.evr-popup {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--evr-popup-width), 90vw);
+  max-height: 86vh;
+  overflow: hidden;
+  background: var(--evr-bg);
+  border: var(--evr-border-width) solid var(--evr-border);
+  border-radius: 0.5rem;
+  box-shadow: var(--evr-shadow);
+}
+
+.evr-popup:focus {
+  outline: none;
+}
+
+.evr-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--evr-ctrl-gap);
+  flex-shrink: 0;
+  padding: var(--evr-ctrl-gap) var(--evr-ctrl-gap) var(--evr-ctrl-gap) var(--evr-popup-padding);
+}
+
+.evr-settings__title {
+  margin: 0;
+  font-size: var(--evr-fs-lg);
+  font-weight: bold;
+}
+
+.evr-settings__close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--evr-ctrl-h);
+  height: var(--evr-ctrl-h);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--evr-radius-sm);
+  background: transparent;
+  color: var(--evr-text);
+  cursor: pointer;
+  transition: var(--evr-transition-base);
+}
+
+.evr-settings__close-btn:hover {
+  background: var(--evr-bg-btn-hover);
+}
+
+/* Scrolling and padding sit on different elements: the scroll container keeps
+   no padding, so the last line is never clipped at the end of the scroll. */
+.evr-settings__panel {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.evr-settings__panel-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--evr-popup-padding) var(--evr-popup-padding);
+}
+
+.evr-settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 0;
+}
+
+.evr-settings__section:first-child {
+  padding-top: 0;
+}
+
+.evr-settings__section:last-child {
+  padding-bottom: 0;
+}
+
+.evr-settings__section + .evr-settings__section {
+  border-top: var(--evr-border-width) solid var(--evr-border);
+}
+
+.evr-settings__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.evr-settings__subtitle > svg {
+  color: var(--evr-text-hint);
+  flex-shrink: 0;
+}
+
+.evr-settings__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--evr-ctrl-h);
+  cursor: pointer;
+}
+
+.evr-settings__label {
+  user-select: none;
+}
+
+
+.evr-switch {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 34px;
+  height: 18px;
+}
+
+.evr-scope input.evr-switch__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.evr-switch__track {
+  flex: 1;
+  border: var(--evr-border-width) solid var(--evr-border);
+  border-radius: 999px;
+  background: var(--evr-bg-btn);
+  transition: var(--evr-transition-base);
+  pointer-events: none;
+}
+
+.evr-switch__knob {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--evr-text-hint);
+  transform: translateY(-50%);
+  transition: left 0.15s, background 0.15s;
+}
+
+.evr-switch__input:checked ~ .evr-switch__track {
+  background: var(--evr-green);
+  border-color: var(--evr-green);
+}
+
+.evr-switch__input:checked ~ .evr-switch__track .evr-switch__knob {
+  left: calc(100% - 13px);
+  background: var(--evr-text-on-color);
+}
+
+.evr-switch__input:focus-visible ~ .evr-switch__track {
+  outline: 2px solid var(--evr-text);
+  outline-offset: 2px;
+}
