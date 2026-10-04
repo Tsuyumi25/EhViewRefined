@@ -1,4 +1,4 @@
-import { listViews, type ListView } from './listViews'
+import { listViews, type ListView } from './listingModes'
 
 export const simulatedPrefix = 'evr-'
 export const storageKey = 'ehe:view'

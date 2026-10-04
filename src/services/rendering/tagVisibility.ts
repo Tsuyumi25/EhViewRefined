@@ -1,4 +1,4 @@
-import { getShowAllTags, subscribeShowAllTags } from './settings'
+import { getShowAllTags, subscribeShowAllTags } from '../settings'
 
 const styleId = 'evr-tag-visibility-style'
 const filterMark = 'data-evr-tag-filter'

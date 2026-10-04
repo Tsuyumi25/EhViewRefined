@@ -36,6 +36,30 @@ const galleries = Array.from(
 
 Once users install this script and use its simulated views, the site's view mode stays in Extended. Other scripts can send search requests in Extended mode to retrieve complete tags. Eh View Refined handles the displayed layout, so those requests leave the user's chosen simulated view unchanged.
 
+## Development
+
+```sh
+pnpm install
+pnpm dev
+pnpm test
+pnpm build
+```
+
+`src/main.ts` starts and stops the page services. `src/services/listingPipeline.ts` coordinates source collection, adaptation, rendering and view switching; field interpretation and DOM construction belong to the modules it calls.
+
+```text
+src/services/
+├─ listingPipeline.ts     Listing flow and per-view cache
+├─ listingModes.ts        Native and simulated view choices
+├─ gallerySnapshot.ts     Snapshot data and named DOM binding contracts
+├─ source/                Extended parsing, metadata, source rows and pagination
+└─ rendering/             Native DOM, tag selection, cover geometry and compatibility
+```
+
+The adapter captures a snapshot when an item is first built for each simulated view. Existing view DOM is reused on later switches. Named source-node bindings preserve markup and control-state links separately from the snapshot's rendering decisions. Public `data-evr-tags` metadata is captured when source rows are collected and retains its existing format.
+
+Within `rendering/`, `nativeLayouts.ts` selects the layout definition, and `nativeListing.ts` handles container setup, deduplication and insertion. `tableLayout.ts` keeps table column order, classes, header labels and tag strategies together; Minimal and Minimal+ share their structure. `thumbnailLayout.ts` owns the card structure and its grid-style initialization. Shared gallery fragments live in `galleryFragments.ts`.
+
 ## License
 
 [MIT](LICENSE)

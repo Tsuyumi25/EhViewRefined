@@ -1,5 +1,5 @@
 import { t } from '@/composables/useI18n'
-import { listViews, type ListView } from './listViews'
+import { listViews, type ListView } from './listingModes'
 import { simulatedPrefix } from './viewRouting'
 
 const navSelector = '.searchnav'

@@ -1,4 +1,5 @@
-import { createExtendedView, type ExtendedView, type ListView } from './listViews'
+import { createListingPipeline, type ListingPipeline } from './listingPipeline'
+import type { ListView } from './listingModes'
 import {
   decorateModeSelect,
   findModeSelects,
@@ -18,7 +19,7 @@ import {
 
 export interface ViewSwitcher {
   /** Null on the site's other display modes, where nothing is simulated. */
-  readonly presentation: ExtendedView | null
+  readonly presentation: ListingPipeline | null
   dispose(): void
 }
 
@@ -39,7 +40,7 @@ export function startViewSwitcher(options: ViewSwitcherOptions): ViewSwitcher | 
   const storage = options.storage ?? window.sessionStorage
   const href = options.href ?? (() => location.href)
   const navigate = options.navigate ?? (url => location.assign(url))
-  const presentation = options.table ? createExtendedView(options.table) : null
+  const presentation = options.table ? createListingPipeline(options.table) : null
   let view = initialView(readStoredView(storage), extended)
 
   function refresh() {

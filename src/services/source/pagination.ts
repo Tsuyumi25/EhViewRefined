@@ -1,8 +1,8 @@
 import { t } from '@/composables/useI18n'
-import type { ExtendedView } from './listViews'
-import { nativeExtendedUrl } from './viewRouting'
+import type { ListingPipeline } from '../listingPipeline'
+import { nativeExtendedUrl } from '../viewRouting'
 
-export function startPagination(presentation: ExtendedView): () => void {
+export function startPagination(presentation: ListingPipeline): () => void {
   const doc = presentation.element.ownerDocument
   const win = doc.defaultView!
   const bottom = doc.querySelectorAll<HTMLElement>('.searchnav')[1]

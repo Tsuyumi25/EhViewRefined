@@ -1,4 +1,4 @@
-import { sourceSelector } from './listViews'
+import { sourceSelector } from './source/extendedAdapter'
 import { startViewSwitcher, type ViewSwitcher } from './viewSwitcher'
 
 /**
