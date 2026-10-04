@@ -49,6 +49,8 @@ pnpm build
 
 Fixture text, links, resource URLs and event-handler contents are anonymized while element structure, classes and layout styles are retained. Text, other attributes, visual layout and highlight-specific behavior are outside this structural contract. Tests require no network access.
 
+The `Test` GitHub Actions workflow runs `pnpm test` on pushes to `main`, pull requests targeting `main`, and manual dispatches.
+
 `src/main.ts` starts and stops the page services. `src/services/listingPipeline.ts` coordinates source collection, adaptation, rendering and view switching; field interpretation and DOM construction belong to the modules it calls.
 
 ```text

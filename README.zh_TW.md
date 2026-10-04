@@ -49,6 +49,8 @@ pnpm build
 
 Fixture 的文字、連結、資源 URL 與事件處理器內容已匿名化，元素結構、class 與排版 style 保留。文字、其他屬性、視覺排版與高亮標籤專屬行為不在這份結構契約的範圍內。測試不需要網路連線。
 
+GitHub Actions 的 `Test` workflow 會在推送至 `main`、以 `main` 為目標的 pull request，以及手動觸發時執行 `pnpm test`。
+
 `src/main.ts` 啟動與停止頁面服務。`src/services/listingPipeline.ts` 串接來源收集、解析、渲染與檢視切換；欄位解讀與 DOM 建構由它呼叫的模組負責。
 
 ```text
