@@ -8,6 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:live": "node scripts/checkNativeListing.mjs",
     "release": "release-it",
     "typecheck": "vue-tsc --noEmit"
   },

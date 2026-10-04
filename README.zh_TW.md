@@ -51,6 +51,12 @@ Fixture 的文字、連結、資源 URL 與事件處理器內容已匿名化，�
 
 GitHub Actions 的 `Test` workflow 會在推送至 `main`、以 `main` 為目標的 pull request，以及手動觸發時執行 `pnpm test`。
 
+`pnpm test:live` 從同一個列表網址抓取目前的五種原生版型，以這些回應執行同一份 DOM 契約測試。比較前會驗證選中的模式，以及各版型的圖庫身份與順序一致。這個命令不會覆寫已提交的 fixture。
+
+每次執行會印出 `.scratch/live-native-listing/` 下的擷取目錄，內含回應 HTML、`capture.json`，比較後另有 `tests.json` 與 `result.json`。抓取錯誤（`fetch-failed`）、樣本無效（`validation-failed`）、結構差異（`incompatible`）與測試執行錯誤（`test-runner-failed`）分開回報。離線重播時，將 `EVR_NATIVE_FIXTURE_DIR` 設為該目錄，再執行 `pnpm test src/services/rendering/nativeListing.test.ts`。
+
+`Live native listing` workflow 每日於 UTC 03:17 執行，也支援手動觸發。擷取頁面與已產生的報告以 artifact 保存 14 天，失敗時也保留，不需要登入 cookie 或 repository 寫入權限。GitHub 排程使用預設分支、可能延遲，公開 repository 閒置 60 天後會停用排程；詳見 [GitHub 排程說明](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)。
+
 `src/main.ts` 啟動與停止頁面服務。`src/services/listingPipeline.ts` 串接來源收集、解析、渲染與檢視切換；欄位解讀與 DOM 建構由它呼叫的模組負責。
 
 ```text

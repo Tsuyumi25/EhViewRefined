@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import extended from '../../../tests/fixtures/native-listing/extended.html?raw'
 import minimal from '../../../tests/fixtures/native-listing/minimal.html?raw'
@@ -9,7 +11,13 @@ import thumbnail from '../../../tests/fixtures/native-listing/thumbnail.html?raw
 import { adaptExtendedGallery, outerRows } from '../source/extendedAdapter'
 import { createNativeListing } from './nativeListing'
 
-const fixtures = { m: minimal, p: minimalPlus, l: compact, t: thumbnail }
+const fixtures = { e: extended, m: minimal, p: minimalPlus, l: compact, t: thumbnail }
+const fixtureDirectory = process.env.EVR_NATIVE_FIXTURE_DIR
+if (fixtureDirectory) {
+  for (const view of ['e', 'm', 'p', 'l', 't'] as const) {
+    fixtures[view] = readFileSync(resolve(fixtureDirectory, `${view}.html`), 'utf8')
+  }
+}
 
 function parseListing(html: string): HTMLElement {
   const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -55,7 +63,7 @@ function galleryLinks(listing: Element): (string | null)[] {
 
 describe('native listing DOM compatibility', () => {
   it.each(['m', 'p', 'l', 't'] as const)('preserves the native %s element hierarchy, order and classes', view => {
-    const source = parseListing(extended)
+    const source = parseListing(fixtures.e)
     const native = parseListing(fixtures[view])
     const rendered = createNativeListing(source.ownerDocument, view)
 

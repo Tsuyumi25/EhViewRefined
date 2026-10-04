@@ -1,0 +1,38 @@
+name: Live native listing
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compare current native layouts
+        run: pnpm test:live
+
+      - name: Save captured pages and comparison results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-native-listing
+          path: .scratch/live-native-listing/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
