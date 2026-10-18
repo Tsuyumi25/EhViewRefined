@@ -18,7 +18,7 @@ Works with [EhSyringe](https://github.com/EhTagTranslation/EhSyringe), [Exhentai
 
 ## For Other Script Developers
 
-Everything below is plain DOM, so it reads the same from any script or sandbox. Eh View Refined only describes what it draws and never reads anything another script writes. Lists are JSON, single values are plain strings, and a value that does not exist leaves its attribute out. Attributes and their meanings are only ever added to, so read leniently: ignore fields and values you do not know.
+Everything below is plain DOM, so it reads the same from any script or sandbox. Eh View Refined only describes what it draws: nothing here needs a script to register with it or tell it anything first. It does follow what widely used scripts for the site do to the page, such as copying tags back to the text the site served when a translation script has already rewritten them, so those scripts keep working on the views it draws. Lists are JSON, single values are plain strings, and a value that does not exist leaves its attribute out. Attributes and their meanings are only ever added to, so read leniently: ignore fields and values you do not know.
 
 ### Detecting Eh View Refined
 
