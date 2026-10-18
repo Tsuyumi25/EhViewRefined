@@ -1,3 +1,4 @@
+import { createItemStrip, type ItemStrip } from '../rendering/itemStrip'
 import { captureGalleryRating, captureGalleryTags, captureGalleryUploader, galleryKey, outerRows, sourceSelector } from './extendedAdapter'
 
 const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: true }
@@ -5,6 +6,7 @@ const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: tru
 export function createExtendedSource(source: HTMLTableElement, onRows: () => void) {
   const doc = source.ownerDocument
   const rows: HTMLTableRowElement[] = []
+  const strip = createItemStrip()
   const known = new Set<string>()
   let scanned = 0
   let parsed = false
@@ -31,6 +33,7 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
       captureGalleryRating(row)
       known.add(key)
       rows.push(row)
+      strip.push(row)
     }
   }
 
@@ -61,6 +64,7 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
 
   return {
     rows: rows as readonly HTMLTableRowElement[],
+    strip: strip as ItemStrip,
     collect,
     appendPage(page: Document): number {
       const table = page.querySelector(sourceSelector)

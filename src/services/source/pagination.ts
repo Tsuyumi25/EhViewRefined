@@ -30,8 +30,11 @@ export function startPagination(presentation: ListingPipeline): () => void {
     }
   }
 
+  // While the window holds back the tail the bottom is not the real end; the window brings the tail back first
+  const tailHidden = () => presentation.strip.end < presentation.strip.count
+
   async function load() {
-    if (loading || disposed || !next) return
+    if (loading || disposed || !next || tailHidden()) return
     loading = true
     try {
       do {
@@ -49,7 +52,7 @@ export function startPagination(presentation: ListingPipeline): () => void {
         visited.add(url)
         next = nextUrl(page, response.url || url)
         updateNextLinks(page)
-      } while (next && !disposed && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
+      } while (next && !disposed && !tailHidden() && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
       if (!next) observer.disconnect()
     } catch (error) {
       if (!disposed) {

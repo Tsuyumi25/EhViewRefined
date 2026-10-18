@@ -1,11 +1,13 @@
 import type { ExtendedGallery } from '../gallerySnapshot'
 import type { NativeView } from '../listingModes'
 import { appendTranslatedItem } from './galleryCompatibility'
+import { createItemStrip, type ItemStrip } from './itemStrip'
 import { nativeLayouts } from './nativeLayouts'
 
 export interface NativeListing {
   /** The listing root the site's own stylesheet and scripts expect. */
   readonly element: HTMLElement
+  readonly strip: ItemStrip
   append(gallery: ExtendedGallery): boolean
 }
 
@@ -17,9 +19,11 @@ export function createNativeListing(doc: Document, view: NativeView): NativeList
   root.setAttribute('data-evr-view', view)
   const container = layout.createContainer?.(root) ?? root
   const seen = new Set<string>()
+  const strip = createItemStrip()
 
   return {
     element: root,
+    strip,
     append(gallery: ExtendedGallery): boolean {
       const { snapshot } = gallery
       if (seen.has(snapshot.gid)) return false
@@ -38,6 +42,7 @@ export function createNativeListing(doc: Document, view: NativeView): NativeList
         item.hover.setAttribute('onmouseout', 'hide_image_pane()')
       }
       appendTranslatedItem(container, item.node)
+      strip.push(item.node)
       return true
     },
   }
