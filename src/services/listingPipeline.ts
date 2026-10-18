@@ -1,5 +1,4 @@
 import type { ItemStrip } from './rendering/itemStrip'
-import { adaptExtendedGallery } from './source/extendedAdapter'
 import { createExtendedSource } from './source/extendedSource'
 import { createListingHost, syncSelection } from './rendering/galleryCompatibility'
 import { createNativeListing, type NativeListing } from './rendering/nativeListing'
@@ -18,16 +17,21 @@ export interface ListingPipeline {
   dispose(): void
 }
 
-interface CachedListing {
+interface ActiveListing {
+  view: NativeView
   native: NativeListing
   fed: number
 }
 
+/**
+ * Only the view on screen holds nodes: once it has drawn a gallery the source
+ * row is released to markup, and a view switched away from is dropped and
+ * built again from that markup when it returns.
+ */
 export function createListingPipeline(source: HTMLTableElement): ListingPipeline {
   const doc = source.ownerDocument
   const host = createListingHost(source)
-  const listings = new Map<NativeView, CachedListing>()
-  let view: ListView = 'e'
+  let active: ActiveListing | null = null
   let disposed = false
   const input = createExtendedSource(source, publish)
   const listeners = new Set<() => void>()
@@ -36,24 +40,17 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
     for (const listener of listeners) listener()
   }
 
-  function feed(listing: CachedListing) {
-    while (listing.fed < input.rows.length) {
-      const gallery = adaptExtendedGallery(input.rows[listing.fed++])
+  function feed(listing: ActiveListing) {
+    while (listing.fed < input.count) {
+      const gallery = input.gallery(listing.fed++)
       if (gallery) listing.native.append(gallery)
     }
+    input.release()
   }
 
   function publish() {
-    const listing = view === 'e' ? undefined : listings.get(view)
-    if (listing) feed(listing)
+    if (active) feed(active)
     notify()
-  }
-
-  function open(next: NativeView): CachedListing {
-    const native = createNativeListing(doc, next)
-    const listing = { native, fed: 0 }
-    listings.set(next, listing)
-    return listing
   }
 
   function flush() {
@@ -69,22 +66,24 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
       return host.element
     },
     get strip() {
-      return view === 'e' ? input.strip : listings.get(view)!.native.strip
+      return active ? active.native.strip : input.strip
     },
     flush,
     setView(next) {
       if (disposed) return
-      syncSelection(host.element, source)
-      view = next
+      const previous = host.element
       if (next === 'e') {
+        input.restore()
+        active = null
         host.mount(source, next)
+        syncSelection(previous, source)
         notify()
         return
       }
-      const listing = listings.get(next) ?? open(next)
-      host.mount(listing.native.element, next)
-      feed(listing)
-      syncSelection(source, listing.native.element)
+      if (active?.view !== next) active = { view: next, native: createNativeListing(doc, next), fed: 0 }
+      host.mount(active.native.element, next)
+      feed(active)
+      syncSelection(previous, active.native.element)
       notify()
     },
     appendPage(page) {
@@ -98,16 +97,18 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
       return () => listeners.delete(listener)
     },
     revealAll() {
-      input.strip.setRange(0, input.strip.count)
-      for (const { native } of listings.values()) native.strip.setRange(0, native.strip.count)
+      const strip = active ? active.native.strip : input.strip
+      strip.setRange(0, strip.count)
     },
     dispose() {
       if (disposed) return
       disposed = true
       listeners.clear()
+      const shown = host.element
+      input.restore()
       input.dispose()
       doc.removeEventListener('DOMContentLoaded', flush)
-      syncSelection(host.element, source)
+      syncSelection(shown, source)
       host.dispose()
     },
   }

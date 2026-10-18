@@ -9,14 +9,11 @@ export interface ListingHost {
 
 const TAG_SELECTOR = '.gt, .gtl, .gtw'
 
-// 勾選狀態只活在 source 的 property 上，換檢視時重建的節點得接回同一份狀態
-function pair(origin: HTMLInputElement, clone: HTMLInputElement) {
+// 勾選狀態只活在 property 上，複製當下帶過去；之後換檢視由 syncSelection 依 key 接回。
+// 不留 change listener：它的 closure 會讓 source 整列一直活著，source 就丟不掉
+function carry(origin: HTMLInputElement, clone: HTMLInputElement) {
   clone.checked = origin.checked
   clone.value = origin.value
-  clone.addEventListener('change', () => {
-    origin.checked = clone.checked
-    origin.value = clone.value
-  })
 }
 
 export function copy<T extends Element>(node: T): T {
@@ -24,7 +21,7 @@ export function copy<T extends Element>(node: T): T {
   const sources = node.querySelectorAll('input, select, textarea')
   const clones = clone.querySelectorAll('input, select, textarea')
   for (let index = 0; index < sources.length; index++) {
-    pair(sources[index] as HTMLInputElement, clones[index] as HTMLInputElement)
+    carry(sources[index] as HTMLInputElement, clones[index] as HTMLInputElement)
   }
   return clone
 }
