@@ -18,6 +18,14 @@ Works with [EhSyringe](https://github.com/EhTagTranslation/EhSyringe), [Exhentai
 
 ## For Other Script Developers
 
+### Detecting Eh View Refined
+
+While the script runs, the root `<html>` element carries `data-evr-version` with its version. It is set at `document-start` on every page the script matches, so scripts that run later can read it directly.
+
+```js
+const evrVersion = document.documentElement.getAttribute('data-evr-version') // null when not running
+```
+
 ### Reading Complete Tags
 
 Each gallery item's `data-evr-tags` attribute contains a JSON array of its complete tags. Each entry includes `name` (the original tag name) and `borderStyle` (`solid`, `dashed` or `dotted`). Hiding tags does not affect this data.

@@ -18,6 +18,14 @@
 
 ## 給其他腳本開發者
 
+### 偵測 Eh View Refined
+
+本插件執行時，根元素 `<html>` 帶有 `data-evr-version` attribute，值是插件版本。它在 `document-start` 就寫入，套用到插件比對的每個頁面，較晚執行的腳本可以直接讀取。
+
+```js
+const evrVersion = document.documentElement.getAttribute('data-evr-version') // 未執行時為 null
+```
+
 ### 讀取完整標籤
 
 每個圖庫項目的 `data-evr-tags` attribute 提供完整標籤的 JSON 陣列。每筆包含 `name`（原始標籤名稱）與 `borderStyle`（`solid`、`dashed` 或 `dotted`）；隱藏標籤不影響這份資料。

@@ -1,8 +1,11 @@
+import { announcePresence } from '@/services/presence'
 import { startEarlyListing } from '@/services/startup'
 import { startPagination } from '@/services/source/pagination'
 import { startTagVisibility } from '@/services/rendering/tagVisibility'
 import { startSettingsUi } from '@/services/settingsUi'
 import { getInfiniteScroll, subscribeInfiniteScroll } from '@/services/settings'
+
+announcePresence(document, __APP_VERSION__)
 
 let stopPagination: (() => void) | undefined
 let stopSettingsUi: (() => void) | undefined
