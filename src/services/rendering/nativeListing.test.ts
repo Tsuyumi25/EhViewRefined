@@ -240,3 +240,16 @@ describe('batched insert', () => {
     expect(records[0].addedNodes).toHaveLength(galleries.length)
   })
 })
+
+describe('highlighted tags', () => {
+  it('marks a tag plain from the paint the site served, and the drawn tag keeps that mark', () => {
+    const source = parseListing(fixtures.e)
+    const [highlighted, plain] = Array.from(source.querySelectorAll<HTMLElement>('.gl4e .gt, .gl4e .gtl'))
+    highlighted.setAttribute('style', 'color:#090909;border-color:#E0C6FF;background:radial-gradient(#E0C6FF,#c0a6df)')
+    const listing = render(source, 't')
+    const drawn = (name: string) => Array.from(listing.element.querySelectorAll<HTMLElement>('[data-evr-tag]'))
+      .find(tag => tag.getAttribute('data-evr-tag') === name)!
+    expect(drawn(highlighted.title).hasAttribute('data-evr-tag-plain')).toBe(false)
+    expect(drawn(plain.title).hasAttribute('data-evr-tag-plain')).toBe(true)
+  })
+})

@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { isColourValue, isHighlighted } from './tagVisibility'
-
-vi.mock('../settings', () => ({}))
+import { describe, expect, it } from 'vitest'
+import { isColourValue, isHighlighted } from './tagPaint'
 
 describe('colour values', () => {
   it('takes any opaque colour the browser serialised', () => {

@@ -1,4 +1,5 @@
 import type { ExtendedGallery, GalleryBindings, GalleryTagSnapshot } from '../gallerySnapshot'
+import { isHighlighted, PLAIN_TAG_MARK } from './tagPaint'
 
 export const sourceSelector = 'table.itg.glte'
 
@@ -82,6 +83,7 @@ export function captureGalleryTags(row: HTMLTableRowElement): string {
     if (tag.title) tag.setAttribute(TAG_NAME, tag.title)
     const namespace = namespaceOf(tag)
     if (namespace) tag.setAttribute(TAG_NAMESPACE, namespace)
+    if (!isHighlighted(tag.style)) tag.setAttribute(PLAIN_TAG_MARK, '')
   }
   const data = tagMetadata(tags)
   row.setAttribute(TAG_DATA, data)

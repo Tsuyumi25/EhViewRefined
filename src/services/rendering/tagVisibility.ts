@@ -1,109 +1,27 @@
 import { getShowAllTags, subscribeShowAllTags } from '../settings'
+import { PLAIN_TAG_MARK } from '../source/tagPaint'
 
 const styleId = 'evr-tag-visibility-style'
 const filterMark = 'data-evr-tag-filter'
-const plainMark = 'data-evr-tag-plain'
 const rootSelector = '[data-evr-view="t"]'
-// Grouped tags sit in a namespace table inside .gl6t; the uploader tag is a setting of its own, never filtered
-const tagSelector = '.gl6t :is(.gt, .gtl, .gtw):not(.evr-uploader-tag)'
 
-const uncoloured: Record<string, true> = {
-  '': true,
-  none: true,
-  transparent: true,
-  currentcolor: true,
-  inherit: true,
-  initial: true,
-  unset: true,
-  revert: true,
-  'revert-layer': true,
-  auto: true,
-}
-
-function alphaOf(value: string): number | null {
-  const body = /^[a-z]+\(([^()]*)\)$/.exec(value)?.[1]
-  if (body === undefined) return null
-  const slash = body.lastIndexOf('/')
-  const parts = body.split(',')
-  const raw = slash >= 0 ? body.slice(slash + 1) : parts.length === 4 ? parts[3] : null
-  if (raw === null) return null
-  const text = raw.trim()
-  const percent = text.endsWith('%')
-  const alpha = Number.parseFloat(percent ? text.slice(0, -1) : text)
-  return Number.isNaN(alpha) ? null : percent ? alpha / 100 : alpha
-}
-
-export function isColourValue(value: string): boolean {
-  const normalised = value.trim().toLowerCase()
-  if (uncoloured[normalised]) return false
-  return alphaOf(normalised) !== 0
-}
-
-export interface TagPaint {
-  color: string
-  backgroundColor: string
-  backgroundImage: string
-}
-
-export function isHighlighted(paint: TagPaint): boolean {
-  return (
-    isColourValue(paint.color) ||
-    isColourValue(paint.backgroundColor) ||
-    isColourValue(paint.backgroundImage)
-  )
-}
-
+/** Thumbnail shows only the tags the site highlights unless the reader asks for all of them. */
 export function startTagVisibility(doc: Document): () => void {
-  const roots = new Map<HTMLElement, MutationObserver>()
+  const roots = new Set<HTMLElement>()
   let showAll = getShowAllTags()
   let disposed = false
-
-  function classify(tag: HTMLElement) {
-    const paint = tag.style
-    const plain = !isHighlighted(paint)
-    if (plain === tag.hasAttribute(plainMark)) return
-    if (plain) tag.setAttribute(plainMark, '')
-    else tag.removeAttribute(plainMark)
-  }
-
-  function classifyWithin(node: Element) {
-    if (node.matches(tagSelector)) classify(node as HTMLElement)
-    for (const tag of node.querySelectorAll<HTMLElement>(tagSelector)) classify(tag)
-  }
 
   function attach(root: HTMLElement) {
     if (roots.has(root) || !root.isConnected) return
     if (!style.isConnected) (doc.head ?? doc.documentElement).append(style)
-    const observer = new MutationObserver(records => {
-      for (const record of records) {
-        if (record.type === 'attributes') {
-          const tag = record.target as HTMLElement
-          if (tag.matches(tagSelector)) classify(tag)
-          else tag.removeAttribute(plainMark)
-          continue
-        }
-        for (const node of record.addedNodes) {
-          if (node.nodeType === 1) classifyWithin(node as Element)
-        }
-      }
-    })
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class'],
-    })
-    roots.set(root, observer)
-    classifyWithin(root)
+    roots.add(root)
     root.toggleAttribute(filterMark, !showAll)
   }
 
   function detach(removed: Element) {
-    for (const [root, observer] of roots) {
+    for (const root of roots) {
       if (removed !== root && !removed.contains(root)) continue
-      observer.disconnect()
       root.removeAttribute(filterMark)
-      for (const tag of root.querySelectorAll(`[${plainMark}]`)) tag.removeAttribute(plainMark)
       roots.delete(root)
     }
   }
@@ -133,8 +51,8 @@ export function startTagVisibility(doc: Document): () => void {
   const style = doc.createElement('style')
   style.id = styleId
   // A namespace row left with only plain tags would show a label with nothing after it
-  style.textContent = `[${filterMark}] [${plainMark}] { display: none !important; }
-[${filterMark}] .evr-tag-groups tr:not(:has([data-evr-tag]:not([${plainMark}]))) { display: none !important; }`
+  style.textContent = `[${filterMark}] .gl6t [${PLAIN_TAG_MARK}] { display: none !important; }
+[${filterMark}] .evr-tag-groups tr:not(:has([data-evr-tag]:not([${PLAIN_TAG_MARK}]))) { display: none !important; }`
 
   finder.observe(doc, {
     childList: true,
@@ -146,10 +64,7 @@ export function startTagVisibility(doc: Document): () => void {
 
   const unsubscribe = subscribeShowAllTags(value => {
     showAll = value
-    for (const root of roots.keys()) {
-      if (showAll) root.removeAttribute(filterMark)
-      else root.setAttribute(filterMark, '')
-    }
+    for (const root of roots) root.toggleAttribute(filterMark, !showAll)
   })
 
   return () => {
@@ -157,11 +72,7 @@ export function startTagVisibility(doc: Document): () => void {
     disposed = true
     unsubscribe()
     finder.disconnect()
-    for (const [root, observer] of roots) {
-      observer.disconnect()
-      root.removeAttribute(filterMark)
-      for (const tag of root.querySelectorAll(`[${plainMark}]`)) tag.removeAttribute(plainMark)
-    }
+    for (const root of roots) root.removeAttribute(filterMark)
     roots.clear()
     style.remove()
   }
