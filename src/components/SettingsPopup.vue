@@ -1,20 +1,41 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { Tags, X } from '@lucide/vue'
 import { t } from '@/composables/useI18n'
 import {
   getShowAllTags, setShowAllTags, subscribeShowAllTags,
   getInfiniteScroll, setInfiniteScroll, subscribeInfiniteScroll,
+  getGroupTags, setGroupTags, subscribeGroupTags,
+  getUploaderTag, setUploaderTag, subscribeUploaderTag,
 } from '@/services/settings'
 
 const emit = defineEmits<{ close: [] }>()
 
-const dialog = ref<HTMLElement | null>(null)
-const showAllTags = ref(getShowAllTags())
-const infiniteScroll = ref(getInfiniteScroll())
+interface Toggle {
+  label: Parameters<typeof t>[0]
+  value: Ref<boolean>
+  set: (value: boolean) => void
+  subscribe: (listener: (value: boolean) => void) => () => void
+}
 
-let unsubscribe: (() => void) | undefined
-let unsubscribeInfiniteScroll: (() => void) | undefined
+function toggle(
+  label: Toggle['label'],
+  get: () => boolean,
+  set: Toggle['set'],
+  subscribe: Toggle['subscribe'],
+): Toggle {
+  return { label, value: ref(get()), set, subscribe }
+}
+
+const browsing = [toggle('settings.infiniteScroll', getInfiniteScroll, setInfiniteScroll, subscribeInfiniteScroll)]
+const tags = [
+  toggle('settings.groupTags', getGroupTags, setGroupTags, subscribeGroupTags),
+  toggle('settings.uploaderTag', getUploaderTag, setUploaderTag, subscribeUploaderTag),
+  toggle('settings.showAllTags', getShowAllTags, setShowAllTags, subscribeShowAllTags),
+]
+
+const dialog = ref<HTMLElement | null>(null)
+let unsubscribers: (() => void)[] = []
 let restoreOverflow = ''
 
 function onKeydown(event: KeyboardEvent) {
@@ -24,33 +45,20 @@ function onKeydown(event: KeyboardEvent) {
   emit('close')
 }
 
-function onToggle(event: Event) {
+function onToggle(entry: Toggle, event: Event) {
   const input = event.target as HTMLInputElement
   try {
-    setShowAllTags(input.checked)
+    entry.set(input.checked)
   } catch (error) {
-    input.checked = showAllTags.value
-    throw error
-  }
-}
-
-function onToggleInfiniteScroll(event: Event) {
-  const input = event.target as HTMLInputElement
-  try {
-    setInfiniteScroll(input.checked)
-  } catch (error) {
-    input.checked = infiniteScroll.value
+    input.checked = entry.value.value
     throw error
   }
 }
 
 onMounted(() => {
-  unsubscribe = subscribeShowAllTags(value => {
-    showAllTags.value = value
-  })
-  unsubscribeInfiniteScroll = subscribeInfiniteScroll(value => {
-    infiniteScroll.value = value
-  })
+  unsubscribers = [...browsing, ...tags].map(entry => entry.subscribe(value => {
+    entry.value.value = value
+  }))
   document.addEventListener('keydown', onKeydown, true)
   restoreOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
@@ -58,8 +66,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  unsubscribe?.()
-  unsubscribeInfiniteScroll?.()
+  for (const unsubscribe of unsubscribers) unsubscribe()
   document.removeEventListener('keydown', onKeydown, true)
   document.body.style.overflow = restoreOverflow
 })
@@ -92,34 +99,24 @@ onBeforeUnmount(() => {
         <div class="evr-settings__panel-inner">
           <section class="evr-settings__section">
             <h4 class="evr-settings__subtitle">{{ t('settings.browsingSection') }}</h4>
-            <label class="evr-settings__row">
+            <label v-for="entry in browsing" :key="entry.label" class="evr-settings__row">
               <span class="evr-switch">
-                <input
-                  class="evr-switch__input"
-                  type="checkbox"
-                  :checked="infiniteScroll"
-                  @change="onToggleInfiniteScroll"
-                />
+                <input class="evr-switch__input" type="checkbox" :checked="entry.value.value" @change="onToggle(entry, $event)" />
                 <span class="evr-switch__track"><span class="evr-switch__knob"></span></span>
               </span>
-              <span class="evr-settings__label">{{ t('settings.infiniteScroll') }}</span>
+              <span class="evr-settings__label">{{ t(entry.label) }}</span>
             </label>
           </section>
           <section class="evr-settings__section">
             <h4 class="evr-settings__subtitle">
               <Tags :size="14" aria-hidden="true" />{{ t('settings.tagsSection') }}
             </h4>
-            <label class="evr-settings__row">
+            <label v-for="entry in tags" :key="entry.label" class="evr-settings__row">
               <span class="evr-switch">
-                <input
-                  class="evr-switch__input"
-                  type="checkbox"
-                  :checked="showAllTags"
-                  @change="onToggle"
-                />
+                <input class="evr-switch__input" type="checkbox" :checked="entry.value.value" @change="onToggle(entry, $event)" />
                 <span class="evr-switch__track"><span class="evr-switch__knob"></span></span>
               </span>
-              <span class="evr-settings__label">{{ t('settings.showAllTags') }}</span>
+              <span class="evr-settings__label">{{ t(entry.label) }}</span>
             </label>
           </section>
         </div>

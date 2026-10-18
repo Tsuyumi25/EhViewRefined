@@ -14,6 +14,8 @@ export default {
   "settings.browsingSection": "瀏覽",
   "settings.infiniteScroll": "無限滾動",
   "settings.close": "關閉",
-  "settings.tagsSection": "縮略圖標籤",
-  "settings.showAllTags": "顯示全部標籤",
+  "settings.tagsSection": "標籤",
+  "settings.showAllTags": "縮略圖顯示全部標籤",
+  "settings.groupTags": "每個 namespace 一列",
+  "settings.uploaderTag": "把上傳者顯示在標籤裡",
 }

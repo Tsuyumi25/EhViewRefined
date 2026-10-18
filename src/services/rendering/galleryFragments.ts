@@ -1,7 +1,6 @@
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { coverGeometry } from './coverGeometry'
-import { cloneTag, copy } from './galleryCompatibility'
-import { selectTagIndexes, type TagSelection } from './nativeTagSelection'
+import { copy } from './galleryCompatibility'
 
 export function element(doc: Document, tag: string, className?: string): HTMLElement {
   const node = doc.createElement(tag)
@@ -52,15 +51,6 @@ export function postedOf(gallery: ExtendedGallery, id: string): HTMLElement | nu
 export function downloadOf(doc: Document, gallery: ExtendedGallery): HTMLElement {
   const source = gallery.bindings.download
   return source ? copy(source) : element(doc, 'div', 'gldown')
-}
-
-export function tagsOf(gallery: ExtendedGallery, selection: TagSelection, className?: string): HTMLElement[] {
-  const { tags } = gallery.snapshot
-  return selectTagIndexes(tags, selection).map(index => {
-    const clone = cloneTag(gallery.bindings.tags[index], tags[index].text)
-    if (className !== undefined) clone.className = className
-    return clone
-  })
 }
 
 export function titleOf(doc: Document, gallery: ExtendedGallery, className: string): HTMLElement {

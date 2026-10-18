@@ -25,6 +25,11 @@ const MY_RATING_DATA = 'data-evr-my-rating'
 /** The star sprite switches to these colours once the user has rated the gallery; it then shows their own rating */
 const MY_RATING_MARKS = ['irr', 'irg', 'irb']
 const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: true }
+const TAG_NAME = 'data-evr-tag'
+const TAG_NAMESPACE = 'data-evr-ns'
+export const UPLOADER_TAG_CLASS = 'evr-uploader-tag'
+/** The uploader tag is ours, drawn as a tag but not one of the site's, so it never counts as one. */
+export const TAG_SELECTOR = `:is(.gt, .gtl, .gtw):not(.${UPLOADER_TAG_CLASS})`
 
 /** Gallery rows carry tables of their own, so only direct children count. */
 export function outerRows(table: Element): HTMLTableRowElement[] {
@@ -53,11 +58,32 @@ function tagMetadata(tags: ArrayLike<HTMLElement>): string {
   })))
 }
 
-/** Caches the public metadata on the row before translation scripts rewrite the tags. */
+/**
+ * The namespace is the tag's own prefix; a tag without one takes the label of
+ * the namespace row it sits in, which is how the site groups it.
+ */
+function namespaceOf(tag: HTMLElement): string | null {
+  const colon = tag.title.indexOf(':')
+  if (colon > 0) return tag.title.slice(0, colon).trim().toLowerCase()
+  const label = tag.closest('tr')?.querySelector(':scope > td.tc')?.textContent?.trim().toLowerCase().replace(/:$/, '')
+  return label || null
+}
+
+/**
+ * Caches the public metadata on the row before translation scripts rewrite the
+ * tags: the list on the row, and each tag's name and namespace on the tag itself,
+ * so a script can find a tag by name in any view without reading its text.
+ */
 export function captureGalleryTags(row: HTMLTableRowElement): string {
   const cached = row.getAttribute(TAG_DATA)
   if (cached !== null) return cached
-  const data = tagMetadata(row.querySelectorAll<HTMLElement>('.gl4e .gt, .gl4e .gtl, .gl4e .gtw'))
+  const tags = row.querySelectorAll<HTMLElement>(`.gl4e ${TAG_SELECTOR}`)
+  for (const tag of tags) {
+    if (tag.title) tag.setAttribute(TAG_NAME, tag.title)
+    const namespace = namespaceOf(tag)
+    if (namespace) tag.setAttribute(TAG_NAMESPACE, namespace)
+  }
+  const data = tagMetadata(tags)
   row.setAttribute(TAG_DATA, data)
   return data
 }
@@ -177,7 +203,7 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
 
   const frame = coverCell?.querySelector<HTMLElement>('div') ?? null
   const cover = coverCell?.querySelector<HTMLImageElement>('img') ?? null
-  const tags = Array.from(name.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'))
+  const tags = Array.from(name.querySelectorAll<HTMLElement>(TAG_SELECTOR))
 
   const tagData = captureGalleryTags(row)
   const uploaderName = captureGalleryUploader(row)
@@ -219,6 +245,7 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
       tags: tags.map((tag): GalleryTagSnapshot => ({
         text: tag.getAttribute('ehs-tag') ?? tag.textContent,
         styled: (tag.getAttribute('style') ?? '') !== '',
+        namespace: tag.getAttribute(TAG_NAMESPACE),
       })),
       tagData,
       uploader: uploaderName,

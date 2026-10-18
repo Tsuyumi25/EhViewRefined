@@ -10,6 +10,7 @@ import compact from '../../../tests/fixtures/native-listing/compact.html?raw'
 import thumbnail from '../../../tests/fixtures/native-listing/thumbnail.html?raw'
 import { adaptExtendedGallery, outerRows } from '../source/extendedAdapter'
 import { createNativeListing } from './nativeListing'
+import { plainTagOptions, type TagOptions } from './tagArea'
 
 const fixtures = { e: extended, m: minimal, p: minimalPlus, l: compact, t: thumbnail }
 const fixtureDirectory = process.env.EVR_NATIVE_FIXTURE_DIR
@@ -57,6 +58,12 @@ function addCompleteThumbnailTags(native: Element, source: Element): void {
   }
 }
 
+function render(source: HTMLElement, view: 'm' | 'p' | 'l' | 't', options: TagOptions = plainTagOptions) {
+  const listing = createNativeListing(source.ownerDocument, view, options)
+  listing.append(outerRows(source).flatMap(row => adaptExtendedGallery(row) ?? []))
+  return listing
+}
+
 function galleryLinks(listing: Element): (string | null)[] {
   return Array.from(listing.querySelectorAll('a[href*="/g/"]'), link => link.getAttribute('href'))
 }
@@ -65,15 +72,9 @@ describe('native listing DOM compatibility', () => {
   it.each(['m', 'p', 'l', 't'] as const)('preserves the native %s element hierarchy, order and classes', view => {
     const source = parseListing(fixtures.e)
     const native = parseListing(fixtures[view])
-    const rendered = createNativeListing(source.ownerDocument, view)
-
     omitNativeAdvertisements(native)
     if (view === 't') addCompleteThumbnailTags(native, source)
-
-    for (const row of outerRows(source)) {
-      const gallery = adaptExtendedGallery(row)
-      if (gallery) rendered.append(gallery)
-    }
+    const rendered = render(source, view)
 
     expect(galleryLinks(rendered.element)).toEqual(galleryLinks(native))
     expect(structure(rendered.element)).toEqual(structure(native))
@@ -104,12 +105,7 @@ describe('public uploader metadata', () => {
 
   it.each(['m', 'p', 'l', 't'] as const)('every %s item carries the uploader of its Extended row', view => {
     const source = parseListing(fixtures.e)
-    const rendered = createNativeListing(source.ownerDocument, view)
-    for (const row of outerRows(source)) {
-      const gallery = adaptExtendedGallery(row)
-      if (gallery) rendered.append(gallery)
-    }
-
+    const rendered = render(source, view)
     const items = Array.from(rendered.element.querySelectorAll('[data-evr-tags]'))
     expect(items.map(item => item.getAttribute('data-evr-uploader'))).toEqual(uploaderNames(source))
   })
@@ -130,12 +126,7 @@ describe('public uploader metadata', () => {
 
 describe('public rating metadata', () => {
   function rendered(source: HTMLElement, view: 'm' | 'p' | 'l' | 't') {
-    const listing = createNativeListing(source.ownerDocument, view)
-    for (const row of outerRows(source)) {
-      const gallery = adaptExtendedGallery(row)
-      if (gallery) listing.append(gallery)
-    }
-    return Array.from(listing.element.querySelectorAll('[data-evr-tags]'))
+    return Array.from(render(source, view).element.querySelectorAll('[data-evr-tags]'))
   }
 
   // The fixture uses two sprite positions: four and a half stars, and four full stars
@@ -161,5 +152,91 @@ describe('public rating metadata', () => {
     expect(row.hasAttribute('data-evr-rating')).toBe(false)
     const item = rendered(source, 't').find(candidate => candidate.getAttribute('data-evr-my-rating') === '2.5')
     expect(item?.hasAttribute('data-evr-rating')).toBe(false)
+  })
+})
+
+/** Each Extended row's namespace rows as [label, tag names], the way the site groups them. */
+function sourceGroups(row: Element): [string, string[]][] {
+  return Array.from(row.querySelectorAll('.gl4e tr'), (line): [string, string[]] => [
+    `${line.querySelector('td.tc')!.textContent!.trim().toLowerCase().replace(/:$/, '')}:`,
+    Array.from(line.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'), tag => tag.title),
+  ])
+}
+
+function galleryRows(source: HTMLElement) {
+  return outerRows(source).filter(row => row.querySelector('a[href*="/g/"]'))
+}
+
+describe('public per-tag metadata', () => {
+  // The fixture styles no tag, so Minimal+ draws none and has nothing to check
+  it.each(['l', 't'] as const)('every tag drawn in %s names itself and its namespace', view => {
+    const source = parseListing(fixtures.e)
+    const expected = new Map(galleryRows(source).flatMap(row => sourceGroups(row).flatMap(([label, names]) =>
+      names.map(name => [name, label.slice(0, -1)] as const))))
+    const tags = Array.from(render(source, view).element.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'))
+    expect(tags.length).toBeGreaterThan(0)
+    for (const tag of tags) {
+      expect(tag.getAttribute('data-evr-tag')).toBe(tag.title)
+      expect(tag.getAttribute('data-evr-ns')).toBe(expected.get(tag.title))
+    }
+  })
+})
+
+describe('tag options', () => {
+  it('groups the tags of every gallery into the rows Extended shows, in the same order', () => {
+    const source = parseListing(fixtures.e)
+    const expected = galleryRows(source).map(sourceGroups)
+    const cards = Array.from(render(source, 't', { group: true, uploader: false }).element.children)
+    expect(cards.map(card => Array.from(card.querySelectorAll('.evr-tag-groups tr'), line => [
+      line.querySelector('td.tc')!.textContent,
+      Array.from(line.querySelectorAll<HTMLElement>('[data-evr-tag]'), tag => tag.title),
+    ]))).toEqual(expected.map(groups => groups.filter(([, names]) => names.length)))
+  })
+
+  it.each([false, true])('adds the uploader as one more tag (grouped: %s) without touching the tag data', group => {
+    const source = parseListing(fixtures.e)
+    const plain = render(source, 't')
+    const listing = render(source, 't', { group, uploader: true })
+    const items = Array.from(listing.element.children)
+    expect(items.map(item => item.getAttribute('data-evr-tags')))
+      .toEqual(Array.from(plain.element.children, item => item.getAttribute('data-evr-tags')))
+    expect(items.some(item => item.hasAttribute('data-evr-uploader'))).toBe(true)
+    for (const item of items) {
+      const uploader = item.getAttribute('data-evr-uploader')
+      const shown = Array.from(item.querySelectorAll<HTMLElement>('.evr-uploader-tag'))
+      expect(shown.map(tag => tag.getAttribute('data-evr-tag'))).toEqual(uploader === null ? [] : [`uploader:${uploader}`])
+      if (group && uploader !== null) {
+        const last = item.querySelector('.evr-tag-groups tr:last-child')!
+        expect(last.querySelector('td.tc')!.textContent).toBe('uploader:')
+        expect(last.contains(shown[0])).toBe(true)
+      }
+    }
+  })
+
+  it('shows the uploader even in Minimal, which draws no tags of its own', () => {
+    const source = parseListing(fixtures.e)
+    const listing = render(source, 'm', { group: false, uploader: true })
+    const named = Array.from(listing.element.querySelectorAll('[data-evr-uploader]'))
+    expect(named.length).toBeGreaterThan(0)
+    for (const item of named) expect(item.querySelectorAll('.evr-uploader-tag')).toHaveLength(1)
+    expect(listing.element.querySelectorAll('[data-evr-tag]:not(.evr-uploader-tag)')).toHaveLength(0)
+  })
+})
+
+describe('batched insert', () => {
+  it('inserts a whole batch as one mutation once the document has loaded', async () => {
+    const source = parseListing(fixtures.e)
+    const listing = createNativeListing(document, 't', plainTagOptions)
+    document.body.append(listing.element)
+    const records: MutationRecord[] = []
+    const observer = new MutationObserver(found => records.push(...found))
+    observer.observe(listing.element, { childList: true, subtree: true })
+    const galleries = galleryRows(source).map(row => adaptExtendedGallery(row)!)
+    expect(listing.append(galleries)).toBe(galleries.length)
+    await Promise.resolve()
+    observer.disconnect()
+    listing.element.remove()
+    expect(records).toHaveLength(1)
+    expect(records[0].addedNodes).toHaveLength(galleries.length)
   })
 })

@@ -18,6 +18,8 @@ Works with [EhSyringe](https://github.com/EhTagTranslation/EhSyringe), [Exhentai
 
 ## For Other Script Developers
 
+Everything below is plain DOM, so it reads the same from any script or sandbox. Eh View Refined only describes what it draws and never reads anything another script writes. Lists are JSON, single values are plain strings, and a value that does not exist leaves its attribute out. Attributes and their meanings are only ever added to, so read leniently: ignore fields and values you do not know.
+
 ### Detecting Eh View Refined
 
 While the script runs, the root `<html>` element carries `data-evr-version` with its version. It is set at `document-start` on every page the script matches, so scripts that run later can read it directly.
@@ -26,9 +28,9 @@ While the script runs, the root `<html>` element carries `data-evr-version` with
 const evrVersion = document.documentElement.getAttribute('data-evr-version') // null when not running
 ```
 
-### Reading Complete Tags
+### Reading All Tags
 
-Each gallery item's `data-evr-tags` attribute contains a JSON array of its complete tags. Each entry includes `name` (the original tag name) and `tier`, the site's own class for how settled the tag is: `gt` (confirmed), `gtl` (many votes, not yet confirmed) or `gtw` (little weight). Later versions may add values for tiers the site introduces; treat a value you do not know as an unrecognised tier. Hiding tags does not affect this data.
+Each gallery item's `data-evr-tags` attribute contains a JSON array of all its tags the site lists, which is every tag with enough power to be searched. Each entry includes `name` (the original tag name) and `tier`, the site's own class for how settled the tag is: `gt` (confirmed), `gtl` (many votes, not yet confirmed) or `gtw` (little weight). Later versions may add values for tiers the site introduces; treat a value you do not know as an unrecognised tier. Hiding tags does not affect this data.
 
 ```js
 const galleries = Array.from(
@@ -47,6 +49,25 @@ Each gallery item's `data-evr-uploader` attribute contains the uploader's name, 
 ```js
 const uploader = element.getAttribute('data-evr-uploader') // null without an uploader link
 ```
+
+### Finding Tags by Name
+
+Every tag drawn in a listing, in any view including Extended, carries `data-evr-tag` with its original name and `data-evr-ns` with its namespace; a tag the site files under no namespace has no `data-evr-ns`. The element keeps the site's classes and holds the tag text as its only child, so a script can restyle it in place without adding nodes.
+
+Unless the reader turns off **Show the uploader among the tags** (on by default), each gallery with an uploader gets one more tag-shaped element with the class `evr-uploader-tag`, `data-evr-tag="uploader:<name>"` and `data-evr-ns="uploader"`. It is not part of `data-evr-tags`. With **One row per namespace**, the simulated views group tags into the namespace rows Extended shows, in the same order, and the uploader gets the last row.
+
+```js
+const tags = document.querySelectorAll('[data-evr-tag]')
+const name = tags[0].getAttribute('data-evr-tag') // e.g. "uploader:<name>" for the uploader tag
+```
+
+### Watching New Galleries
+
+Each page of galleries, including those infinite scrolling loads, is inserted into the listing in one batch, so a `MutationObserver` on the listing sees one `childList` record per page.
+
+### Galleries Outside the Window
+
+With infinite scrolling on, galleries far from the viewport stay in the document but are not drawn: they carry the class `evr-parked`, which sets `display: none`. Nodes, references and form inputs inside them stay as they were, and the class is removed when they come back near the viewport. Two `.evr-window-spacer` elements next to the listing hold the height of the parked galleries.
 
 ### Reading the Rating
 
@@ -86,14 +107,14 @@ The `Live native listing` workflow runs daily at 03:17 UTC and supports manual d
 
 ```text
 src/services/
-├─ listingPipeline.ts     Listing flow and per-view cache
+├─ listingPipeline.ts     Listing flow and the view on screen
 ├─ listingModes.ts        Native and simulated view choices
 ├─ gallerySnapshot.ts     Snapshot data and named DOM binding contracts
 ├─ source/                Extended parsing, metadata, source rows and pagination
 └─ rendering/             Native DOM, tag selection, cover geometry and compatibility
 ```
 
-The adapter captures a snapshot when an item is first built for each simulated view. Existing view DOM is reused on later switches. Named source-node bindings preserve markup and control-state links separately from the snapshot's rendering decisions. Public `data-evr-tags`, `data-evr-uploader`, `data-evr-rating` and `data-evr-my-rating` metadata is captured when source rows are collected; `data-evr-tags` retains its existing format.
+The adapter captures a snapshot when an item is built for the simulated view on screen. Once drawn, the source row is kept only as markup; a view switched away from is dropped and built again from that markup when it returns. Named source-node bindings preserve markup and control-state links separately from the snapshot's rendering decisions. Public `data-evr-tags`, `data-evr-tag`, `data-evr-ns`, `data-evr-uploader`, `data-evr-rating` and `data-evr-my-rating` metadata is captured when source rows are collected; `data-evr-tags` retains its existing format.
 
 Within `rendering/`, `nativeLayouts.ts` selects the layout definition, and `nativeListing.ts` handles container setup, deduplication and insertion. `tableLayout.ts` keeps table column order, classes, header labels and tag strategies together; Minimal and Minimal+ share their structure. `thumbnailLayout.ts` owns the card structure and its grid-style initialization. Shared gallery fragments live in `galleryFragments.ts`.
 

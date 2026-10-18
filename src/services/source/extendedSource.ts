@@ -1,5 +1,6 @@
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { createItemStrip, type ItemStrip, type ItemStripWriter } from '../rendering/itemStrip'
+import { syncUploaderRow } from '../rendering/tagArea'
 import {
   adaptExtendedGallery,
   captureGalleryRating,
@@ -33,11 +34,17 @@ export interface ExtendedSource {
   /** Rebuilds released rows from their markup, in order, so the source can be shown again. */
   restore(): void
   collect(): void
+  /** Adds or removes the uploader tag row on the live rows after the setting changed. */
+  syncUploaderTags(): void
   appendPage(page: Document): number
   dispose(): void
 }
 
-export function createExtendedSource(source: HTMLTableElement, onRows: () => void): ExtendedSource {
+export function createExtendedSource(
+  source: HTMLTableElement,
+  onRows: () => void,
+  uploaderTag: () => boolean = () => false,
+): ExtendedSource {
   const doc = source.ownerDocument
   const entries: Entry[] = []
   let strip: ItemStripWriter = createItemStrip()
@@ -66,13 +73,17 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
       visited.add(row)
       const key = galleryKey(row)
       if (!key || known.has(key)) continue
-      captureGalleryTags(row)
-      captureGalleryUploader(row)
-      captureGalleryRating(row)
+      capture(row)
       known.add(key)
       entries.push({ gid: key.split('/')[0], row, html: null })
       strip.push(row)
     }
+  }
+
+  function capture(row: HTMLTableRowElement) {
+    captureGalleryTags(row)
+    syncUploaderRow(row, captureGalleryUploader(row), uploaderTag())
+    captureGalleryRating(row)
   }
 
   /** Built in the template's inert document, so its images load only once a copy reaches the page. */
@@ -146,6 +157,7 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
           continue
         }
         const row = parse(entry.html!)
+        syncUploaderRow(row, captureGalleryUploader(row), uploaderTag())
         visited.add(row)
         entry.row = row
         entry.html = null
@@ -161,19 +173,27 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
       for (const entry of entries) strip.push(entry.row!)
     },
     collect,
+    syncUploaderTags() {
+      for (const entry of entries) {
+        if (entry.row) syncUploaderRow(entry.row, captureGalleryUploader(entry.row), uploaderTag())
+      }
+    },
     appendPage(page: Document): number {
       const table = page.querySelector(sourceSelector)
       if (!table) throw new Error('eh-view-refined: the response carries no Extended listing')
-      const host = section()
+      // Captured while still in the response, then inserted as one batch: scripts watching the listing get
+      // one mutation for the page, and the metadata is in place before any of them reads it
+      const batch = doc.createDocumentFragment()
       const incoming = new Set<string>()
-      let added = 0
       for (const row of outerRows(table)) {
         const key = galleryKey(row)
         if (!key || known.has(key) || incoming.has(key)) continue
         incoming.add(key)
-        host.append(row)
-        added++
+        capture(row)
+        batch.append(row)
       }
+      const added = incoming.size
+      section().append(batch)
       collect()
       return added
     },

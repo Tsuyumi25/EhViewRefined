@@ -1,4 +1,5 @@
 import { createListingPipeline, type ListingPipeline } from './listingPipeline'
+import type { TagOptions } from './rendering/tagArea'
 import type { ListView } from './listingModes'
 import {
   decorateModeSelect,
@@ -30,6 +31,7 @@ export interface ViewSwitcherOptions {
   storage?: ViewStorage
   href?: () => string
   navigate?: (url: string) => void
+  tagOptions?: () => TagOptions
 }
 
 export function startViewSwitcher(options: ViewSwitcherOptions): ViewSwitcher | null {
@@ -40,7 +42,7 @@ export function startViewSwitcher(options: ViewSwitcherOptions): ViewSwitcher | 
   const storage = options.storage ?? window.sessionStorage
   const href = options.href ?? (() => location.href)
   const navigate = options.navigate ?? (url => location.assign(url))
-  const presentation = options.table ? createListingPipeline(options.table) : null
+  const presentation = options.table ? createListingPipeline(options.table, options.tagOptions) : null
   let view = initialView(readStoredView(storage), extended)
 
   function refresh() {

@@ -67,6 +67,20 @@ export const {
   subscribe: subscribeShowAllTags,
 } = createBooleanSetting(showAllTagsKey, true)
 
+export const groupTagsKey = 'ehe:group-tags'
+export const {
+  get: getGroupTags,
+  set: setGroupTags,
+  subscribe: subscribeGroupTags,
+} = createBooleanSetting(groupTagsKey, false)
+
+export const uploaderTagKey = 'ehe:uploader-tag'
+export const {
+  get: getUploaderTag,
+  set: setUploaderTag,
+  subscribe: subscribeUploaderTag,
+} = createBooleanSetting(uploaderTagKey, true)
+
 export const infiniteScrollKey = 'ehe:infinite-scroll'
 export const {
   get: getInfiniteScroll,

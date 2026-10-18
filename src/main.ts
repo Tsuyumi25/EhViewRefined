@@ -5,7 +5,7 @@ import { startLiveUrl } from '@/services/source/liveUrl'
 import { startListingWindow } from '@/services/rendering/listingWindow'
 import { startTagVisibility } from '@/services/rendering/tagVisibility'
 import { startSettingsUi } from '@/services/settingsUi'
-import { getInfiniteScroll, subscribeInfiniteScroll } from '@/services/settings'
+import { getInfiniteScroll, subscribeGroupTags, subscribeInfiniteScroll, subscribeUploaderTag } from '@/services/settings'
 
 announcePresence(document, __APP_VERSION__)
 // Read before anything rewrites the address, so turning infinite scroll off and on still knows where the page began
@@ -16,6 +16,7 @@ let stopWindow: (() => void) | undefined
 let stopLiveUrl: (() => void) | undefined
 let stopSettingsUi: (() => void) | undefined
 let stopObservingPagination: (() => void) | undefined
+let stopObservingTags: (() => void)[] = []
 const stopTagVisibility = startTagVisibility(document)
 const startup = startEarlyListing(switcher => {
   const presentation = switcher.presentation
@@ -31,6 +32,7 @@ const startup = startEarlyListing(switcher => {
     }
     syncPagination(getInfiniteScroll())
     stopObservingPagination = subscribeInfiniteScroll(syncPagination)
+    stopObservingTags = [subscribeGroupTags, subscribeUploaderTag].map(subscribe => subscribe(() => presentation.refreshTags()))
   }
   stopSettingsUi = startSettingsUi()
 })
@@ -38,6 +40,7 @@ const startup = startEarlyListing(switcher => {
 window.addEventListener('pagehide', event => {
   if (event.persisted) return
   stopObservingPagination?.()
+  for (const stop of stopObservingTags) stop()
   stopPagination?.()
   stopWindow?.()
   stopLiveUrl?.()

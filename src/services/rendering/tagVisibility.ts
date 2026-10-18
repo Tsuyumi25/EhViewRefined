@@ -4,7 +4,8 @@ const styleId = 'evr-tag-visibility-style'
 const filterMark = 'data-evr-tag-filter'
 const plainMark = 'data-evr-tag-plain'
 const rootSelector = '[data-evr-view="t"]'
-const tagSelector = '.gl6t > :is(.gt, .gtl, .gtw)'
+// Grouped tags sit in a namespace table inside .gl6t; the uploader tag is a setting of its own, never filtered
+const tagSelector = '.gl6t :is(.gt, .gtl, .gtw):not(.evr-uploader-tag)'
 
 const uncoloured: Record<string, true> = {
   '': true,
@@ -131,7 +132,9 @@ export function startTagVisibility(doc: Document): () => void {
 
   const style = doc.createElement('style')
   style.id = styleId
-  style.textContent = `[${filterMark}] [${plainMark}] { display: none !important; }`
+  // A namespace row left with only plain tags would show a label with nothing after it
+  style.textContent = `[${filterMark}] [${plainMark}] { display: none !important; }
+[${filterMark}] .evr-tag-groups tr:not(:has([data-evr-tag]:not([${plainMark}]))) { display: none !important; }`
 
   finder.observe(doc, {
     childList: true,

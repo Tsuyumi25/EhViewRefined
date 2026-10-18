@@ -14,6 +14,8 @@ export default {
   "settings.browsingSection": "탐색",
   "settings.infiniteScroll": "무한 스크롤",
   "settings.close": "닫기",
-  "settings.tagsSection": "썸네일 태그",
-  "settings.showAllTags": "모든 태그 표시",
+  "settings.tagsSection": "태그",
+  "settings.showAllTags": "썸네일에서 모든 태그 표시",
+  "settings.groupTags": "namespace마다 한 줄",
+  "settings.uploaderTag": "업로더를 태그로 표시",
 }

@@ -3,6 +3,8 @@ import { createExtendedSource } from './source/extendedSource'
 import { createListingHost, syncSelection } from './rendering/galleryCompatibility'
 import { createNativeListing, type NativeListing } from './rendering/nativeListing'
 import type { ListView, NativeView } from './listingModes'
+import type { ExtendedGallery } from './gallerySnapshot'
+import { plainTagOptions, type TagOptions } from './rendering/tagArea'
 
 export interface ListingPipeline {
   readonly element: HTMLElement
@@ -14,6 +16,8 @@ export interface ListingPipeline {
   /** Called after the listing on screen gained items or was swapped for another view. */
   watch(listener: () => void): () => void
   revealAll(): void
+  /** Draws the listing again after the tag settings changed. */
+  refreshTags(): void
   dispose(): void
 }
 
@@ -28,12 +32,15 @@ interface ActiveListing {
  * row is released to markup, and a view switched away from is dropped and
  * built again from that markup when it returns.
  */
-export function createListingPipeline(source: HTMLTableElement): ListingPipeline {
+export function createListingPipeline(
+  source: HTMLTableElement,
+  tagOptions: () => TagOptions = () => plainTagOptions,
+): ListingPipeline {
   const doc = source.ownerDocument
   const host = createListingHost(source)
   let active: ActiveListing | null = null
   let disposed = false
-  const input = createExtendedSource(source, publish)
+  const input = createExtendedSource(source, publish, () => tagOptions().uploader)
   const listeners = new Set<() => void>()
 
   function notify() {
@@ -41,11 +48,17 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
   }
 
   function feed(listing: ActiveListing) {
+    const batch: ExtendedGallery[] = []
     while (listing.fed < input.count) {
       const gallery = input.gallery(listing.fed++)
-      if (gallery) listing.native.append(gallery)
+      if (gallery) batch.push(gallery)
     }
+    listing.native.append(batch)
     input.release()
+  }
+
+  function open(next: NativeView): ActiveListing {
+    return { view: next, native: createNativeListing(doc, next, tagOptions()), fed: 0 }
   }
 
   function publish() {
@@ -80,7 +93,7 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
         notify()
         return
       }
-      if (active?.view !== next) active = { view: next, native: createNativeListing(doc, next), fed: 0 }
+      if (active?.view !== next) active = open(next)
       host.mount(active.native.element, next)
       feed(active)
       syncSelection(previous, active.native.element)
@@ -95,6 +108,17 @@ export function createListingPipeline(source: HTMLTableElement): ListingPipeline
     watch(listener) {
       listeners.add(listener)
       return () => listeners.delete(listener)
+    },
+    refreshTags() {
+      if (disposed) return
+      input.syncUploaderTags()
+      if (!active) return
+      const previous = active.native.element
+      active = open(active.view)
+      host.mount(active.native.element, active.view)
+      feed(active)
+      syncSelection(previous, active.native.element)
+      notify()
     },
     revealAll() {
       const strip = active ? active.native.strip : input.strip

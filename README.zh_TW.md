@@ -18,6 +18,8 @@
 
 ## 給其他腳本開發者
 
+以下全部都是一般的 DOM，任何腳本、任何 sandbox 讀到的都一樣。Eh View Refined 只描述自己畫了什麼，從不讀取其他腳本寫下的東西。清單用 JSON，單一值用純字串，沒有值就不掛 attribute。attribute 與它們的意義只會增加、不會更改，讀取時請寬容：遇到不認得的欄位與值就略過。
+
 ### 偵測 Eh View Refined
 
 本插件執行時，根元素 `<html>` 帶有 `data-evr-version` attribute，值是插件版本。它在 `document-start` 就寫入，套用到插件比對的每個頁面，較晚執行的腳本可以直接讀取。
@@ -26,9 +28,9 @@
 const evrVersion = document.documentElement.getAttribute('data-evr-version') // 未執行時為 null
 ```
 
-### 讀取完整標籤
+### 讀取所有標籤
 
-每個圖庫項目的 `data-evr-tags` attribute 提供完整標籤的 JSON 陣列。每筆包含 `name`（原始標籤名稱）與 `tier`，也就是網站自己用來標示標籤確定程度的 class：`gt`（確定）、`gtl`（票數多但尚未確定）、`gtw`（權重低）。日後的版本可能為網站新增的層級加上新的值，遇到不認得的值請當成未知的層級處理。隱藏標籤不影響這份資料。
+每個圖庫項目的 `data-evr-tags` attribute 提供網站列出的所有標籤的 JSON 陣列，也就是 power 足以被搜尋到的每一個標籤。每筆包含 `name`（原始標籤名稱）與 `tier`，也就是網站自己用來標示標籤確定程度的 class：`gt`（確定）、`gtl`（票數多但尚未確定）、`gtw`（權重低）。日後的版本可能為網站新增的層級加上新的值，遇到不認得的值請當成未知的層級處理。隱藏標籤不影響這份資料。
 
 ```js
 const galleries = Array.from(
@@ -47,6 +49,25 @@ const galleries = Array.from(
 ```js
 const uploader = element.getAttribute('data-evr-uploader') // 沒有上傳者連結時為 null
 ```
+
+### 依名稱找到標籤
+
+列表上畫出的每一個標籤，不論哪種視圖（包括 Extended），都帶有 `data-evr-tag`（原始標籤名稱）與 `data-evr-ns`（namespace）；網站沒有歸到任何 namespace 的標籤沒有 `data-evr-ns`。元素保留網站的 class，標籤文字是它唯一的子節點，腳本可以直接在原元素上改樣式，不必加入節點。
+
+除非讀者關掉「**把上傳者顯示在標籤裡**」（預設開啟），每個有上傳者的圖庫會多一個長得像標籤的元素，帶有 class `evr-uploader-tag`、`data-evr-tag="uploader:<名稱>"` 與 `data-evr-ns="uploader"`。它不在 `data-evr-tags` 裡。開啟「**每個 namespace 一列**」時，模擬視圖會照 Extended 的 namespace 列與順序分列，上傳者放在最後一列。
+
+```js
+const tags = document.querySelectorAll('[data-evr-tag]')
+const name = tags[0].getAttribute('data-evr-tag') // 上傳者標籤會是 "uploader:<名稱>"
+```
+
+### 監看新的圖庫
+
+每一頁圖庫（包括無限滾動載入的頁）都一次插入列表，所以監看列表的 `MutationObserver` 每頁只會收到一筆 `childList` 紀錄。
+
+### 視窗外的圖庫
+
+開啟無限滾動時，離視窗很遠的圖庫會留在文件裡但不繪製：它們帶有 class `evr-parked`，設為 `display: none`。裡面的節點、reference 與表單欄位都維持原樣，回到視窗附近時 class 就會拿掉。列表旁的兩個 `.evr-window-spacer` 撐住這些圖庫的高度。
 
 ### 讀取評分
 
@@ -86,14 +107,14 @@ GitHub Actions 的 `Test` workflow 會在推送至 `main`、以 `main` 為目標
 
 ```text
 src/services/
-├─ listingPipeline.ts     列表流程與各版型快取
+├─ listingPipeline.ts     列表流程與目前顯示的版型
 ├─ listingModes.ts        原生與模擬版型選項
 ├─ gallerySnapshot.ts     snapshot 資料與具名 DOM 綁定契約
 ├─ source/                Extended 解析、metadata、來源列與分頁抓取
 └─ rendering/             原生 DOM、標籤選取、封面幾何與相容性
 ```
 
-Adapter 在每種模擬版型首次建立圖庫項目時取得 snapshot，後續切換沿用既有版型 DOM。具名來源節點綁定負責保留 markup 與控制項狀態連結，與 snapshot 的渲染決策資料分開。對外的 `data-evr-tags`、`data-evr-uploader`、`data-evr-rating` 與 `data-evr-my-rating` metadata 在收集來源列時取得，`data-evr-tags` 維持既有格式。
+Adapter 在畫出目前模擬版型的圖庫項目時取得 snapshot。來源列畫好之後只留下 markup；切走的版型直接丟掉，切回來時再從 markup 重建。具名來源節點綁定負責保留 markup 與控制項狀態連結，與 snapshot 的渲染決策資料分開。對外的 `data-evr-tags`、`data-evr-tag`、`data-evr-ns`、`data-evr-uploader`、`data-evr-rating` 與 `data-evr-my-rating` metadata 在收集來源列時取得，`data-evr-tags` 維持既有格式。
 
 `rendering/` 內由 `nativeLayouts.ts` 選取版型定義，`nativeListing.ts` 負責容器建立、去重與追加。`tableLayout.ts` 集中表格欄位順序、class、表頭文字與標籤策略，Minimal 與 Minimal+ 共用結構。`thumbnailLayout.ts` 持有卡片結構與 grid 樣式初始化，共用圖庫片段放在 `galleryFragments.ts`。
 

@@ -1,7 +1,8 @@
 import { t } from '@/composables/useI18n'
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { copy } from './galleryCompatibility'
-import { categoryOf, coverOf, downloadOf, element, postedOf, tagsOf, titleOf } from './galleryFragments'
+import { categoryOf, coverOf, downloadOf, element, postedOf, titleOf } from './galleryFragments'
+import { tagAreaOf, type TagOptions } from './tagArea'
 import type { NativeItem, NativeLayout } from './nativeLayouts'
 import type { TagSelection } from './nativeTagSelection'
 
@@ -30,6 +31,7 @@ interface RowContext {
   definition: TableDefinition
   preview: HTMLElement
   hover: HTMLElement | null
+  tagOptions: TagOptions
 }
 
 const PANE_FOOTER = 46
@@ -90,7 +92,7 @@ function titleCell(context: RowContext): HTMLElement {
   const { doc, gallery, definition } = context
   const cell = element(doc, 'td')
   const title = titleOf(doc, gallery, 'glink')
-  const tags = tagsOf(gallery, definition.tags, 'gt')
+  const tags = tagAreaOf(gallery, definition.tags, context.tagOptions, 'gt')
   if (tags.length > 0) {
     const holder = element(doc, 'div', definition.titleTagsClassName)
     holder.append(...tags)
@@ -134,7 +136,7 @@ function favouriteCell(doc: Document, gallery: ExtendedGallery, className: strin
   return cell
 }
 
-function tableItem(doc: Document, gallery: ExtendedGallery, definition: TableDefinition): NativeItem {
+function tableItem(doc: Document, gallery: ExtendedGallery, definition: TableDefinition, tagOptions: TagOptions): NativeItem {
   const row = doc.createElement('tr')
   if (gallery.snapshot.fresh !== null) row.setAttribute('data-new', gallery.snapshot.fresh)
   const preview = element(doc, 'td')
@@ -142,7 +144,7 @@ function tableItem(doc: Document, gallery: ExtendedGallery, definition: TableDef
   cut.id = `ic${gallery.snapshot.gid}`
   const pane = paneOf(doc, gallery, definition.categoryClassName)
   preview.append(cut, pane)
-  const context: RowContext = { doc, gallery, definition, preview, hover: null }
+  const context: RowContext = { doc, gallery, definition, preview, hover: null, tagOptions }
   for (const column of definition.columns) {
     const cell = column.render(context)
     cell.className = column.className
@@ -175,7 +177,7 @@ function tableLayout(definition: TableDefinition): NativeLayout {
       body.append(header)
       return body
     },
-    renderItem: (doc, gallery) => tableItem(doc, gallery, definition),
+    renderItem: (doc, gallery, tagOptions) => tableItem(doc, gallery, definition, tagOptions),
   }
 }
 

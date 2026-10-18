@@ -14,6 +14,8 @@ export default {
   "settings.browsingSection": "Browsing",
   "settings.infiniteScroll": "Infinite scrolling",
   "settings.close": "Close",
-  "settings.tagsSection": "Thumbnail tags",
-  "settings.showAllTags": "Show all tags",
+  "settings.tagsSection": "Tags",
+  "settings.showAllTags": "Show all tags in Thumbnail",
+  "settings.groupTags": "One row per namespace",
+  "settings.uploaderTag": "Show the uploader among the tags",
 }

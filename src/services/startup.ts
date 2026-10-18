@@ -1,4 +1,5 @@
 import { sourceSelector } from './source/extendedAdapter'
+import { getGroupTags, getUploaderTag } from './settings'
 import { startViewSwitcher, type ViewSwitcher } from './viewSwitcher'
 
 /**
@@ -17,7 +18,7 @@ export function startEarlyListing(onReady?: (switcher: ViewSwitcher) => void): {
     if (started || disposed) return
     started = true
     observer.disconnect()
-    switcher = startViewSwitcher({ table })
+    switcher = startViewSwitcher({ table, tagOptions: () => ({ group: getGroupTags(), uploader: getUploaderTag() }) })
   }
 
   const observer = new MutationObserver(records => {

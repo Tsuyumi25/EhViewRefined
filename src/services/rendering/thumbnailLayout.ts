@@ -1,6 +1,7 @@
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { copy } from './galleryCompatibility'
-import { categoryOf, coverOf, downloadOf, element, postedOf, tagsOf, titleOf } from './galleryFragments'
+import { categoryOf, coverOf, downloadOf, element, postedOf, titleOf } from './galleryFragments'
+import { tagAreaOf, type TagOptions } from './tagArea'
 import type { NativeItem, NativeLayout } from './nativeLayouts'
 
 /** Extended responses omit the native Thumbnail page's inline grid rules. */
@@ -31,7 +32,7 @@ function favouritePanel(doc: Document, gallery: ExtendedGallery): HTMLElement | 
   return holder
 }
 
-function thumbnailItem(doc: Document, gallery: ExtendedGallery): NativeItem {
+function thumbnailItem(doc: Document, gallery: ExtendedGallery, tagOptions: TagOptions): NativeItem {
   const { snapshot, bindings } = gallery
   const card = element(doc, 'div', 'gl1t')
   if (snapshot.fresh !== null) card.setAttribute('data-new', snapshot.fresh)
@@ -53,7 +54,7 @@ function thumbnailItem(doc: Document, gallery: ExtendedGallery): NativeItem {
   card.append(frame)
 
   const tags = element(doc, 'div', 'gl6t')
-  tags.append(...tagsOf(gallery, 'all'))
+  tags.append(...tagAreaOf(gallery, 'all', tagOptions))
   card.append(tags)
 
   const footer = element(doc, 'div', 'gl5t')

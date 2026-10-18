@@ -28,6 +28,8 @@ export interface GalleryCoverSnapshot {
 export interface GalleryTagSnapshot {
   text: string | null
   styled: boolean
+  /** Null for a tag the site files under no namespace. */
+  namespace: string | null
 }
 
 export interface GallerySnapshot {

@@ -77,4 +77,33 @@ describe('createListingPipeline', () => {
     expect(source.isConnected).toBe(true)
     expect(outerRows(source).filter(row => galleryKey(row)).map(gidOf)).toEqual(order)
   })
+
+  it('keeps one uploader tag per gallery through view switches and follows the setting in every view', () => {
+    const options = { group: false, uploader: true }
+    const pipeline = createListingPipeline(source, () => options)
+    const data = outerRows(source).filter(row => galleryKey(row)).map(row => row.getAttribute('data-evr-tags'))
+    const uploaders = () => shown(pipeline).map(node => Array.from(
+      node.querySelectorAll('.evr-uploader-tag'), tag => tag.getAttribute('data-evr-tag'),
+    ))
+    const expected = shown(pipeline).map(node => {
+      const name = node.getAttribute('data-evr-uploader')
+      return name === null ? [] : [`uploader:${name}`]
+    })
+    expect(expected.some(names => names.length)).toBe(true)
+
+    for (const view of ['e', 't', 'e', 'm', 'e'] as const) {
+      pipeline.setView(view)
+      expect(uploaders()).toEqual(expected)
+      expect(shown(pipeline).map(node => node.getAttribute('data-evr-tags'))).toEqual(data)
+    }
+    for (const view of ['e', 't'] as const) {
+      pipeline.setView(view)
+      options.uploader = false
+      pipeline.refreshTags()
+      expect(uploaders().flat()).toEqual([])
+      options.uploader = true
+      pipeline.refreshTags()
+      expect(uploaders()).toEqual(expected)
+    }
+  })
 })

@@ -14,6 +14,8 @@ export default {
   "settings.browsingSection": "閲覧",
   "settings.infiniteScroll": "無限スクロール",
   "settings.close": "閉じる",
-  "settings.tagsSection": "サムネイルのタグ",
-  "settings.showAllTags": "すべてのタグを表示",
+  "settings.tagsSection": "タグ",
+  "settings.showAllTags": "サムネイルですべてのタグを表示",
+  "settings.groupTags": "namespace ごとに 1 行",
+  "settings.uploaderTag": "アップローダーをタグとして表示",
 }

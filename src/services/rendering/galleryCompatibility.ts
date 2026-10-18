@@ -46,15 +46,26 @@ export function cloneTag(node: HTMLElement, text: string | null): HTMLElement {
   return clone
 }
 
-/** Translation scripts watch tag text nodes; re-adding them after the insert keeps their order. */
-export function appendTranslatedItem(container: HTMLElement, item: HTMLElement) {
-  const tags = item.querySelectorAll<HTMLElement>(TAG_SELECTOR)
-  const texts = Array.from(tags, tag => {
+/**
+ * Inserts a whole batch at once, so scripts watching the listing see one
+ * mutation instead of one per gallery. Translation scripts only walk into an
+ * inserted node once the document has loaded; until then they translate what
+ * is added itself, so each tag's text is added again after the insert.
+ */
+export function insertItems(container: HTMLElement, items: readonly HTMLElement[]): void {
+  const batch = container.ownerDocument.createDocumentFragment()
+  batch.append(...items)
+  if (container.ownerDocument.readyState !== 'loading') {
+    container.append(batch)
+    return
+  }
+  const tags = Array.from(batch.querySelectorAll<HTMLElement>(TAG_SELECTOR))
+  const texts = tags.map(tag => {
     const text = tag.firstChild
     text?.remove()
     return text
   })
-  container.append(item)
+  container.append(batch)
   texts.forEach((text, index) => {
     if (text) tags[index].append(text)
   })
