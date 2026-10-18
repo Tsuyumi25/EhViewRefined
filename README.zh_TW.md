@@ -32,6 +32,14 @@ const galleries = Array.from(
 )
 ```
 
+### 讀取上傳者
+
+每個圖庫項目的 `data-evr-uploader` attribute 提供上傳者名稱，取自上傳者連結並已解碼。所有視圖都有這份資料，包括本身不顯示上傳者的 Thumbnail；來源列沒有上傳者連結時就沒有這個 attribute。
+
+```js
+const uploader = element.getAttribute('data-evr-uploader') // 沒有上傳者連結時為 null
+```
+
 ### 以 Extended 發送 search request
 
 讓使用者安裝本插件並使用模擬視圖後，網站端的 view mode 會始終維持 Extended。其他腳本可以直接以 Extended mode 發送 search request，取得完整標籤；使用者看到的排版由本插件處理，無須擔心這些請求改變使用者選擇的模擬視圖。
@@ -68,7 +76,7 @@ src/services/
 └─ rendering/             原生 DOM、標籤選取、封面幾何與相容性
 ```
 
-Adapter 在每種模擬版型首次建立圖庫項目時取得 snapshot，後續切換沿用既有版型 DOM。具名來源節點綁定負責保留 markup 與控制項狀態連結，與 snapshot 的渲染決策資料分開。對外的 `data-evr-tags` metadata 在收集來源列時取得，維持既有格式。
+Adapter 在每種模擬版型首次建立圖庫項目時取得 snapshot，後續切換沿用既有版型 DOM。具名來源節點綁定負責保留 markup 與控制項狀態連結，與 snapshot 的渲染決策資料分開。對外的 `data-evr-tags` 與 `data-evr-uploader` metadata 在收集來源列時取得，`data-evr-tags` 維持既有格式。
 
 `rendering/` 內由 `nativeLayouts.ts` 選取版型定義，`nativeListing.ts` 負責容器建立、去重與追加。`tableLayout.ts` 集中表格欄位順序、class、表頭文字與標籤策略，Minimal 與 Minimal+ 共用結構。`thumbnailLayout.ts` 持有卡片結構與 grid 樣式初始化，共用圖庫片段放在 `galleryFragments.ts`。
 

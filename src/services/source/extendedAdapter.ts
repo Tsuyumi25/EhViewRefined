@@ -11,6 +11,8 @@ const GALLERY_PATH = /\/g\/(\d+)\/[^/?#]+/
 const GALLERY_KEY = /\/g\/(\d+)\/([^/?#]+)/
 const CATEGORY_TONE = /^ct[0-9a-f]+$/
 const TAG_DATA = 'data-evr-tags'
+const UPLOADER_DATA = 'data-evr-uploader'
+const UPLOADER_PATH = /\/uploader\/([^/?#]+)/
 const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: true }
 
 /** Gallery rows carry tables of their own, so only direct children count. */
@@ -49,6 +51,26 @@ export function captureGalleryTags(row: HTMLTableRowElement): string {
   const data = tagMetadata(row.querySelectorAll<HTMLElement>('.gl4e .gt, .gl4e .gtl, .gl4e .gtw'))
   row.setAttribute(TAG_DATA, data)
   return data
+}
+
+/**
+ * The name comes from the uploader link, the site's own target for that user.
+ * Rows without that link get no attribute.
+ */
+export function captureGalleryUploader(row: HTMLTableRowElement): string | null {
+  const cached = row.getAttribute(UPLOADER_DATA)
+  if (cached !== null) return cached
+  const encoded = UPLOADER_PATH.exec(row.querySelector('.gl3e a[href*="/uploader/"]')?.getAttribute('href') ?? '')?.[1]
+  if (!encoded) return null
+  let name: string
+  try {
+    // The site form-encodes the path, so spaces arrive as "+"
+    name = decodeURIComponent(encoded.replace(/\+/g, ' '))
+  } catch {
+    return null
+  }
+  row.setAttribute(UPLOADER_DATA, name)
+  return name
 }
 
 function childByClass(parent: Element | null, name: string): HTMLElement | null {
@@ -117,6 +139,7 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
   const tags = Array.from(name.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'))
 
   const tagData = captureGalleryTags(row)
+  const uploaderName = captureGalleryUploader(row)
 
   const bindings: GalleryBindings = {
     cover,
@@ -156,6 +179,7 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
         styled: (tag.getAttribute('style') ?? '') !== '',
       })),
       tagData,
+      uploader: uploaderName,
       previousGid: GALLERY_PATH.exec(galleryHref(row.previousElementSibling))?.[1] ?? '0',
       nextGid: GALLERY_PATH.exec(galleryHref(row.nextElementSibling))?.[1] ?? '0',
     },

@@ -42,6 +42,8 @@ export interface GallerySnapshot {
   /** Aligned by index to the tag bindings. */
   tags: readonly GalleryTagSnapshot[]
   tagData: string
+  /** Null when the row has no uploader link; Thumbnail has no uploader cell, so this is its only trace. */
+  uploader: string | null
   previousGid: string
   nextGid: string
 }

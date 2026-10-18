@@ -27,6 +27,7 @@ export function createNativeListing(doc: Document, view: NativeView): NativeList
 
       const item = layout.renderItem(doc, gallery)
       item.node.setAttribute('data-evr-tags', snapshot.tagData)
+      if (snapshot.uploader !== null) item.node.setAttribute('data-evr-uploader', snapshot.uploader)
       if (item.hover) {
         item.hover.setAttribute(
           'onmouseover',

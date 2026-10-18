@@ -32,6 +32,14 @@ const galleries = Array.from(
 )
 ```
 
+### Reading the Uploader
+
+Each gallery item's `data-evr-uploader` attribute contains the uploader's name, decoded from the uploader link. It is present in every view, including Thumbnail, whose layout shows no uploader. Items whose row has no uploader link have no attribute.
+
+```js
+const uploader = element.getAttribute('data-evr-uploader') // null without an uploader link
+```
+
 ### Sending Search Requests in Extended Mode
 
 Once users install this script and use its simulated views, the site's view mode stays in Extended. Other scripts can send search requests in Extended mode to retrieve complete tags. Eh View Refined handles the displayed layout, so those requests leave the user's chosen simulated view unchanged.
@@ -68,7 +76,7 @@ src/services/
 └─ rendering/             Native DOM, tag selection, cover geometry and compatibility
 ```
 
-The adapter captures a snapshot when an item is first built for each simulated view. Existing view DOM is reused on later switches. Named source-node bindings preserve markup and control-state links separately from the snapshot's rendering decisions. Public `data-evr-tags` metadata is captured when source rows are collected and retains its existing format.
+The adapter captures a snapshot when an item is first built for each simulated view. Existing view DOM is reused on later switches. Named source-node bindings preserve markup and control-state links separately from the snapshot's rendering decisions. Public `data-evr-tags` and `data-evr-uploader` metadata is captured when source rows are collected; `data-evr-tags` retains its existing format.
 
 Within `rendering/`, `nativeLayouts.ts` selects the layout definition, and `nativeListing.ts` handles container setup, deduplication and insertion. `tableLayout.ts` keeps table column order, classes, header labels and tag strategies together; Minimal and Minimal+ share their structure. `thumbnailLayout.ts` owns the card structure and its grid-style initialization. Shared gallery fragments live in `galleryFragments.ts`.
 

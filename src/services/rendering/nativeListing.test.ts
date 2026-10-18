@@ -79,3 +79,37 @@ describe('native listing DOM compatibility', () => {
     expect(structure(rendered.element)).toEqual(structure(native))
   })
 })
+
+describe('public uploader metadata', () => {
+  function uploaderNames(listing: Element): (string | null)[] {
+    return outerRows(listing).filter(row => row.querySelector('a[href*="/g/"]')).map(row => {
+      const href = row.querySelector('.gl3e a[href*="/uploader/"]')?.getAttribute('href')
+      return href ? decodeURIComponent(href.split('/uploader/')[1].replace(/\+/g, ' ')) : null
+    })
+  }
+
+  it.each(['m', 'p', 'l', 't'] as const)('every %s item carries the uploader of its Extended row', view => {
+    const source = parseListing(fixtures.e)
+    const rendered = createNativeListing(source.ownerDocument, view)
+    for (const row of outerRows(source)) {
+      const gallery = adaptExtendedGallery(row)
+      if (gallery) rendered.append(gallery)
+    }
+
+    const items = Array.from(rendered.element.querySelectorAll('[data-evr-tags]'))
+    expect(items.map(item => item.getAttribute('data-evr-uploader'))).toEqual(uploaderNames(source))
+  })
+
+  it('decodes the form-encoded link and leaves rows without an uploader link unmarked', () => {
+    const source = parseListing(fixtures.e)
+    const [named, unlinked] = outerRows(source).filter(row => row.querySelector('.gl3e a[href*="/uploader/"]'))
+    named.querySelector('.gl3e a[href*="/uploader/"]')!.setAttribute('href', 'https://e-hentai.org/uploader/Some+Name%2B1')
+    const link = unlinked.querySelector('.gl3e a[href*="/uploader/"]')!
+    link.replaceWith(...link.childNodes)
+
+    expect(adaptExtendedGallery(named)?.snapshot.uploader).toBe('Some Name+1')
+    expect(named.getAttribute('data-evr-uploader')).toBe('Some Name+1')
+    expect(adaptExtendedGallery(unlinked)?.snapshot.uploader).toBeNull()
+    expect(unlinked.hasAttribute('data-evr-uploader')).toBe(false)
+  })
+})
