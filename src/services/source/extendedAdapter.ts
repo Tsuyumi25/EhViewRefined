@@ -2,9 +2,16 @@ import type { ExtendedGallery, GalleryBindings, GalleryTagSnapshot } from '../ga
 
 export const sourceSelector = 'table.itg.glte'
 
+/**
+ * The site's own class for how settled a tag is, passed on as is: gt is confirmed,
+ * gtl has many votes but is not confirmed, gtw carries little weight. Naming the
+ * level instead of how the site draws it keeps the value true if the drawing changes.
+ */
+type TagTier = 'gt' | 'gtl' | 'gtw'
+
 interface GalleryTagMetadata {
   name: string
-  borderStyle: 'solid' | 'dashed' | 'dotted'
+  tier: TagTier
 }
 
 const GALLERY_PATH = /\/g\/(\d+)\/[^/?#]+/
@@ -42,9 +49,7 @@ export function galleryKey(row: Element): string | null {
 function tagMetadata(tags: ArrayLike<HTMLElement>): string {
   return JSON.stringify(Array.from(tags, (tag): GalleryTagMetadata => ({
     name: tag.title,
-    borderStyle: tag.classList.contains('gtw')
-      ? 'dotted'
-      : tag.classList.contains('gtl') ? 'dashed' : 'solid',
+    tier: tag.classList.contains('gtw') ? 'gtw' : tag.classList.contains('gtl') ? 'gtl' : 'gt',
   })))
 }
 

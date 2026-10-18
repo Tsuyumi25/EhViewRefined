@@ -80,6 +80,20 @@ describe('native listing DOM compatibility', () => {
   })
 })
 
+describe('public tag metadata', () => {
+  it('passes on each tag name with the site class for its tier', () => {
+    const source = parseListing(fixtures.e)
+    const row = outerRows(source).find(candidate => candidate.querySelector('.gl4e .gtl'))!
+    const gallery = adaptExtendedGallery(row)!
+    const expected = Array.from(row.querySelectorAll<HTMLElement>('.gl4e .gt, .gl4e .gtl, .gl4e .gtw'), tag => ({
+      name: tag.title,
+      tier: ['gt', 'gtl', 'gtw'].find(tier => tag.classList.contains(tier)),
+    }))
+    expect(expected.some(tag => tag.tier === 'gtl')).toBe(true)
+    expect(JSON.parse(gallery.snapshot.tagData)).toEqual(expected)
+  })
+})
+
 describe('public uploader metadata', () => {
   function uploaderNames(listing: Element): (string | null)[] {
     return outerRows(listing).filter(row => row.querySelector('a[href*="/g/"]')).map(row => {

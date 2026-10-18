@@ -28,7 +28,7 @@ const evrVersion = document.documentElement.getAttribute('data-evr-version') // 
 
 ### Reading Complete Tags
 
-Each gallery item's `data-evr-tags` attribute contains a JSON array of its complete tags. Each entry includes `name` (the original tag name) and `borderStyle` (`solid`, `dashed` or `dotted`). Hiding tags does not affect this data.
+Each gallery item's `data-evr-tags` attribute contains a JSON array of its complete tags. Each entry includes `name` (the original tag name) and `tier`, the site's own class for how settled the tag is: `gt` (confirmed), `gtl` (many votes, not yet confirmed) or `gtw` (little weight). Later versions may add values for tiers the site introduces; treat a value you do not know as an unrecognised tier. Hiding tags does not affect this data.
 
 ```js
 const galleries = Array.from(

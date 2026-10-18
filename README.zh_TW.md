@@ -28,7 +28,7 @@ const evrVersion = document.documentElement.getAttribute('data-evr-version') // 
 
 ### 讀取完整標籤
 
-每個圖庫項目的 `data-evr-tags` attribute 提供完整標籤的 JSON 陣列。每筆包含 `name`（原始標籤名稱）與 `borderStyle`（`solid`、`dashed` 或 `dotted`）；隱藏標籤不影響這份資料。
+每個圖庫項目的 `data-evr-tags` attribute 提供完整標籤的 JSON 陣列。每筆包含 `name`（原始標籤名稱）與 `tier`，也就是網站自己用來標示標籤確定程度的 class：`gt`（確定）、`gtl`（票數多但尚未確定）、`gtw`（權重低）。日後的版本可能為網站新增的層級加上新的值，遇到不認得的值請當成未知的層級處理。隱藏標籤不影響這份資料。
 
 ```js
 const galleries = Array.from(
