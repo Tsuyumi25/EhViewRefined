@@ -1,5 +1,6 @@
 import { t } from '@/composables/useI18n'
 import type { ListingPipeline } from '../listingPipeline'
+import { sourceSelector } from './extendedAdapter'
 import { nativeExtendedUrl } from '../viewRouting'
 
 export function startPagination(presentation: ListingPipeline): () => void {
@@ -30,11 +31,25 @@ export function startPagination(presentation: ListingPipeline): () => void {
     }
   }
 
-  // While the window holds back the tail the bottom is not the real end; the window brings the tail back first
-  const tailHidden = () => presentation.strip.end < presentation.strip.count
+  /**
+   * The page asks for the user's own display mode, which was Extended when this
+   * listing loaded. Forcing it with inline_set costs a redirect on every page,
+   * so that is kept for a mode changed in another tab since.
+   */
+  async function fetchPage(url: string): Promise<{ page: Document; base: string }> {
+    for (const target of [url, nativeExtendedUrl(url)]) {
+      const response = await win.fetch(target, { signal: abort.signal })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const page = new win.DOMParser().parseFromString(await response.text(), 'text/html')
+      if (page.querySelector(sourceSelector)) return { page, base: response.url || url }
+    }
+    throw new Error('eh-view-refined: the response carries no Extended listing')
+  }
 
+  // The sentinel sits below the bottom spacer, so it only comes near once the reader is at the true end,
+  // even while the window still has the tail parked; it fires only on entering, so no call may be turned away
   async function load() {
-    if (loading || disposed || !next || tailHidden()) return
+    if (loading || disposed || !next) return
     loading = true
     try {
       do {
@@ -43,16 +58,13 @@ export function startPagination(presentation: ListingPipeline): () => void {
           next = null
           break
         }
-        const response = await win.fetch(nativeExtendedUrl(url), { signal: abort.signal })
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const html = await response.text()
+        const { page, base } = await fetchPage(url)
         if (disposed) return
-        const page = new win.DOMParser().parseFromString(html, 'text/html')
         presentation.appendPage(page)
         visited.add(url)
-        next = nextUrl(page, response.url || url)
+        next = nextUrl(page, base)
         updateNextLinks(page)
-      } while (next && !disposed && !tailHidden() && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
+      } while (next && !disposed && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
       if (!next) observer.disconnect()
     } catch (error) {
       if (!disposed) {
