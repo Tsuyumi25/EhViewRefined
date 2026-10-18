@@ -28,6 +28,8 @@ export function createNativeListing(doc: Document, view: NativeView): NativeList
       const item = layout.renderItem(doc, gallery)
       item.node.setAttribute('data-evr-tags', snapshot.tagData)
       if (snapshot.uploader !== null) item.node.setAttribute('data-evr-uploader', snapshot.uploader)
+      if (snapshot.rating !== null) item.node.setAttribute('data-evr-rating', String(snapshot.rating))
+      if (snapshot.myRating !== null) item.node.setAttribute('data-evr-my-rating', String(snapshot.myRating))
       if (item.hover) {
         item.hover.setAttribute(
           'onmouseover',

@@ -13,6 +13,10 @@ const CATEGORY_TONE = /^ct[0-9a-f]+$/
 const TAG_DATA = 'data-evr-tags'
 const UPLOADER_DATA = 'data-evr-uploader'
 const UPLOADER_PATH = /\/uploader\/([^/?#]+)/
+const RATING_DATA = 'data-evr-rating'
+const MY_RATING_DATA = 'data-evr-my-rating'
+/** The star sprite switches to these colours once the user has rated the gallery; it then shows their own rating */
+const MY_RATING_MARKS = ['irr', 'irg', 'irb']
 const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: true }
 
 /** Gallery rows carry tables of their own, so only direct children count. */
@@ -71,6 +75,38 @@ export function captureGalleryUploader(row: HTMLTableRowElement): string | null 
   }
   row.setAttribute(UPLOADER_DATA, name)
   return name
+}
+
+export interface GalleryRating {
+  /** The site's average, in the half-star steps the listing shows; null when the stars show the user's own rating */
+  rating: number | null
+  /** The user's own rating when they have rated the gallery */
+  myRating: number | null
+}
+
+/**
+ * The stars are one sprite: each step of -16px across removes a star and the row
+ * at -21px down is the half-star row, so the precision is 0.5.
+ */
+function starsOf(stars: Element): number | null {
+  const [x, y] = Array.from((stars.getAttribute('style') ?? '').matchAll(/(-?\d+)px/g), match => Math.abs(Number(match[1])))
+  if (x === undefined || y === undefined) return null
+  const value = 5 - x / 16 - (y === 21 ? 0.5 : 0)
+  return value >= 0 && value <= 5 ? value : null
+}
+
+export function captureGalleryRating(row: HTMLTableRowElement): GalleryRating {
+  const cachedRating = row.getAttribute(RATING_DATA)
+  const cachedMine = row.getAttribute(MY_RATING_DATA)
+  if (cachedRating !== null || cachedMine !== null) {
+    return { rating: cachedRating === null ? null : Number(cachedRating), myRating: cachedMine === null ? null : Number(cachedMine) }
+  }
+  const stars = row.querySelector('.gl3e .ir')
+  const value = stars ? starsOf(stars) : null
+  if (value === null) return { rating: null, myRating: null }
+  const mine = MY_RATING_MARKS.some(mark => stars!.classList.contains(mark))
+  row.setAttribute(mine ? MY_RATING_DATA : RATING_DATA, String(value))
+  return mine ? { rating: null, myRating: value } : { rating: value, myRating: null }
 }
 
 function childByClass(parent: Element | null, name: string): HTMLElement | null {
@@ -140,6 +176,7 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
 
   const tagData = captureGalleryTags(row)
   const uploaderName = captureGalleryUploader(row)
+  const { rating: averageRating, myRating } = captureGalleryRating(row)
 
   const bindings: GalleryBindings = {
     cover,
@@ -180,6 +217,8 @@ export function adaptExtendedGallery(row: HTMLTableRowElement): ExtendedGallery 
       })),
       tagData,
       uploader: uploaderName,
+      rating: averageRating,
+      myRating,
       previousGid: GALLERY_PATH.exec(galleryHref(row.previousElementSibling))?.[1] ?? '0',
       nextGid: GALLERY_PATH.exec(galleryHref(row.nextElementSibling))?.[1] ?? '0',
     },

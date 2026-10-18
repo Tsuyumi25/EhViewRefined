@@ -1,4 +1,4 @@
-import { captureGalleryTags, captureGalleryUploader, galleryKey, outerRows, sourceSelector } from './extendedAdapter'
+import { captureGalleryRating, captureGalleryTags, captureGalleryUploader, galleryKey, outerRows, sourceSelector } from './extendedAdapter'
 
 const sectionTags: Record<string, true> = { TBODY: true, THEAD: true, TFOOT: true }
 
@@ -28,6 +28,7 @@ export function createExtendedSource(source: HTMLTableElement, onRows: () => voi
       if (!key || known.has(key)) continue
       captureGalleryTags(row)
       captureGalleryUploader(row)
+      captureGalleryRating(row)
       known.add(key)
       rows.push(row)
     }

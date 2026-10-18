@@ -44,6 +44,9 @@ export interface GallerySnapshot {
   tagData: string
   /** Null when the row has no uploader link; Thumbnail has no uploader cell, so this is its only trace. */
   uploader: string | null
+  /** Average rating in half-star steps; null when the stars show the user's own rating */
+  rating: number | null
+  myRating: number | null
   previousGid: string
   nextGid: string
 }

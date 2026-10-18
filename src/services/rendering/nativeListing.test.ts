@@ -113,3 +113,39 @@ describe('public uploader metadata', () => {
     expect(unlinked.hasAttribute('data-evr-uploader')).toBe(false)
   })
 })
+
+describe('public rating metadata', () => {
+  function rendered(source: HTMLElement, view: 'm' | 'p' | 'l' | 't') {
+    const listing = createNativeListing(source.ownerDocument, view)
+    for (const row of outerRows(source)) {
+      const gallery = adaptExtendedGallery(row)
+      if (gallery) listing.append(gallery)
+    }
+    return Array.from(listing.element.querySelectorAll('[data-evr-tags]'))
+  }
+
+  // The fixture uses two sprite positions: four and a half stars, and four full stars
+  const SHOWN: Record<string, string> = { '0px -21px': '4.5', '-16px -1px': '4' }
+
+  it.each(['m', 'p', 'l', 't'] as const)('every %s item carries the half-star rating its stars show', view => {
+    const source = parseListing(fixtures.e)
+    const expected = outerRows(source).filter(row => row.querySelector('a[href*="/g/"]')).map(row =>
+      SHOWN[/background-position:([^;]+)/.exec(row.querySelector('.gl3e .ir')!.getAttribute('style')!)![1]])
+    expect(expected).not.toContain(undefined)
+    expect(rendered(source, view).map(item => item.getAttribute('data-evr-rating'))).toEqual(expected)
+  })
+
+  it('moves stars that show the user rating to data-evr-my-rating', () => {
+    const source = parseListing(fixtures.e)
+    const row = outerRows(source).find(candidate => candidate.querySelector('.gl3e .ir'))!
+    const stars = row.querySelector('.gl3e .ir')!
+    stars.classList.add('irg')
+    stars.setAttribute('style', 'background-position:-32px -21px;opacity:1')
+
+    expect(adaptExtendedGallery(row)?.snapshot).toMatchObject({ rating: null, myRating: 2.5 })
+    expect(row.getAttribute('data-evr-my-rating')).toBe('2.5')
+    expect(row.hasAttribute('data-evr-rating')).toBe(false)
+    const item = rendered(source, 't').find(candidate => candidate.getAttribute('data-evr-my-rating') === '2.5')
+    expect(item?.hasAttribute('data-evr-rating')).toBe(false)
+  })
+})
