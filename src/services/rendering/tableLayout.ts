@@ -1,4 +1,4 @@
-import { t } from '@/composables/useI18n'
+import { localizeText, type MessageKey } from '@/composables/useI18n'
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { copy } from './galleryCompatibility'
 import { categoryOf, coverOf, downloadOf, element, postedOf, titleOf } from './galleryFragments'
@@ -8,7 +8,7 @@ import type { TagSelection } from './nativeTagSelection'
 
 interface Column {
   className: string
-  header?: Parameters<typeof t>[0]
+  header?: MessageKey
   headerClassName?: string
   render: (context: RowContext) => HTMLElement
 }
@@ -170,7 +170,7 @@ function tableLayout(definition: TableDefinition): NativeLayout {
       const header = doc.createElement('tr')
       for (const column of definition.columns) {
         const cell = element(doc, 'th', column.headerClassName)
-        cell.textContent = column.header ? t(column.header) : ''
+        if (column.header) localizeText(cell, column.header)
         header.append(cell)
       }
       root.append(body)

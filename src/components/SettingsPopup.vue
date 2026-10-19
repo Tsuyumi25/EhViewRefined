@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
-import { Tags, X } from '@lucide/vue'
-import { t } from '@/composables/useI18n'
+import { Languages, Tags, X } from '@lucide/vue'
+import { locale, t } from '@/composables/useI18n'
+import type { Locale } from '@/services/locale'
 import {
   getShowAllTags, setShowAllTags, subscribeShowAllTags,
   getInfiniteScroll, setInfiniteScroll, subscribeInfiniteScroll,
   getGroupTags, setGroupTags, subscribeGroupTags,
   getUploaderTag, setUploaderTag, subscribeUploaderTag,
+  setLocaleChoice,
 } from '@/services/settings'
 
 const emit = defineEmits<{ close: [] }>()
@@ -32,6 +34,15 @@ const tags = [
   toggle('settings.groupTags', getGroupTags, setGroupTags, subscribeGroupTags),
   toggle('settings.uploaderTag', getUploaderTag, setUploaderTag, subscribeUploaderTag),
   toggle('settings.showAllTags', getShowAllTags, setShowAllTags, subscribeShowAllTags),
+]
+
+// Each language is named in itself: someone stuck in a language they cannot read still finds their own
+const localeOptions: { value: Locale; label: string }[] = [
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'en', label: 'English' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
 ]
 
 const dialog = ref<HTMLElement | null>(null)
@@ -97,6 +108,22 @@ onBeforeUnmount(() => {
 
       <div class="evr-settings__panel">
         <div class="evr-settings__panel-inner">
+          <section class="evr-settings__section">
+            <h4 class="evr-settings__subtitle">
+              <Languages :size="14" aria-hidden="true" />{{ t('settings.language') }}
+            </h4>
+            <div class="evr-settings__locale-row">
+              <button
+                v-for="option in localeOptions"
+                :key="option.value"
+                type="button"
+                class="evr-settings__locale-btn"
+                :aria-pressed="locale === option.value"
+                :lang="option.value"
+                @click="setLocaleChoice(option.value)"
+              >{{ option.label }}</button>
+            </div>
+          </section>
           <section class="evr-settings__section">
             <h4 class="evr-settings__subtitle">{{ t('settings.browsingSection') }}</h4>
             <label v-for="entry in browsing" :key="entry.label" class="evr-settings__row">

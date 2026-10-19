@@ -169,4 +169,17 @@ describe('script-owned settings', () => {
     expect(seen).toEqual([true])
     stop()
   })
+
+  it('follows the browser until a language is picked, and ignores a language it does not know', async () => {
+    vi.stubGlobal('navigator', { languages: ['ja-JP'] })
+    const settings = await import('./settings')
+    expect(settings.getLocaleChoice()).toBe('ja')
+    settings.setLocaleChoice('ko')
+    vi.resetModules()
+    expect((await import('./settings')).getLocaleChoice()).toBe('ko')
+
+    manager.values.set(settings.localeKey, 'fr')
+    vi.resetModules()
+    expect((await import('./settings')).getLocaleChoice()).toBe('ja')
+  })
 })

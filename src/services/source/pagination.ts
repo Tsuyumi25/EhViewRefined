@@ -1,4 +1,4 @@
-import { t } from '@/composables/useI18n'
+import { localizeText } from '@/composables/useI18n'
 import type { ListingPipeline } from '../listingPipeline'
 import { sourceSelector } from './extendedAdapter'
 import { nativeExtendedUrl } from '../viewRouting'
@@ -69,7 +69,7 @@ export function startPagination(presentation: ListingPipeline): () => void {
     } catch (error) {
       if (!disposed) {
         observer.disconnect()
-        errorNotice.textContent = t('pagination.error')
+        localizeText(errorNotice, 'pagination.error')
         bottom.after(errorNotice)
         console.error('[Eh View Refined] Pagination stopped:', error)
       }

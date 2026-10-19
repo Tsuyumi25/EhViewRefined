@@ -1,4 +1,4 @@
-import { t } from '@/composables/useI18n'
+import { localizeLabel, localizeText } from '@/composables/useI18n'
 import { listViews, type ListView } from './listingModes'
 import { simulatedPrefix } from './viewRouting'
 
@@ -29,13 +29,13 @@ export function decorateModeSelect(select: HTMLSelectElement): void {
   const group = document.createElement('optgroup')
   group.setAttribute(groupAttribute, '')
   group.setAttribute('translate', 'no')
-  group.label = t('select.group')
+  localizeLabel(group, 'select.group')
   for (const view of listViews) {
     if (view === 'e') continue
     const option = document.createElement('option')
     // LOLICON reads select.value at startup; the optgroup identifies simulated choices.
     option.value = view
-    option.textContent = t(`views.${view}`)
+    localizeText(option, `views.${view}`)
     group.append(option)
   }
   select.append(group)

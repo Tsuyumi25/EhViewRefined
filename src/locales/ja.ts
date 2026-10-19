@@ -14,6 +14,7 @@ export default {
   "settings.browsingSection": "閲覧",
   "settings.infiniteScroll": "無限スクロール",
   "settings.close": "閉じる",
+  "settings.language": "言語 / Language",
   "settings.tagsSection": "タグ",
   "settings.showAllTags": "サムネイルですべてのタグを表示",
   "settings.groupTags": "namespace ごとに 1 行",

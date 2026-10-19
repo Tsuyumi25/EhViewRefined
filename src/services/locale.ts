@@ -1,4 +1,9 @@
-export type Locale = 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'ko'
+export const locales = ['zh-TW', 'zh-CN', 'en', 'ja', 'ko'] as const
+export type Locale = (typeof locales)[number]
+
+export function isLocale(value: unknown): value is Locale {
+  return locales.includes(value as Locale)
+}
 
 export function detectLocale(languages: readonly string[]): Locale {
   for (const language of languages) {

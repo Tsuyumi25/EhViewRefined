@@ -5,9 +5,15 @@ import { startLiveUrl } from '@/services/source/liveUrl'
 import { startListingWindow } from '@/services/rendering/listingWindow'
 import { startTagVisibility } from '@/services/rendering/tagVisibility'
 import { startSettingsUi } from '@/services/settingsUi'
-import { getInfiniteScroll, subscribeGroupTags, subscribeInfiniteScroll, subscribeUploaderTag } from '@/services/settings'
+import {
+  getInfiniteScroll, getLocaleChoice, subscribeGroupTags, subscribeInfiniteScroll, subscribeLocaleChoice, subscribeUploaderTag,
+} from '@/services/settings'
+import { setLocale } from '@/composables/useI18n'
 
 announcePresence(document, __APP_VERSION__)
+// Before anything writes text into the page, so the first render is already in the chosen language
+setLocale(getLocaleChoice())
+const stopObservingLocale = subscribeLocaleChoice(next => setLocale(next))
 // Read before anything rewrites the address, so turning infinite scroll off and on still knows where the page began
 const origin = location.href
 
@@ -39,6 +45,7 @@ const startup = startEarlyListing(switcher => {
 
 window.addEventListener('pagehide', event => {
   if (event.persisted) return
+  stopObservingLocale()
   stopObservingPagination?.()
   for (const stop of stopObservingTags) stop()
   stopPagination?.()

@@ -14,6 +14,7 @@ export default {
   "settings.browsingSection": "浏览",
   "settings.infiniteScroll": "无限滚动",
   "settings.close": "关闭",
+  "settings.language": "语言 / Language",
   "settings.tagsSection": "标签",
   "settings.showAllTags": "缩略图显示全部标签",
   "settings.groupTags": "每个 namespace 一行",

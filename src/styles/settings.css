@@ -200,6 +200,34 @@
   flex-shrink: 0;
 }
 
+.evr-settings__locale-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--evr-ctrl-gap);
+}
+
+.evr-settings__locale-btn {
+  font: inherit;
+  height: var(--evr-ctrl-h);
+  margin: 0;
+  padding: 0 10px;
+  border: var(--evr-border-width) solid var(--evr-border);
+  border-radius: var(--evr-radius-sm);
+  background: var(--evr-bg-btn);
+  color: var(--evr-text);
+  cursor: pointer;
+  transition: var(--evr-transition-base);
+}
+
+.evr-settings__locale-btn:hover {
+  background: var(--evr-bg-hover);
+}
+
+.evr-settings__locale-btn[aria-pressed='true'] {
+  background: var(--evr-bg-active);
+  font-weight: bold;
+}
+
 .evr-settings__row {
   display: flex;
   align-items: center;

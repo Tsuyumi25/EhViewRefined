@@ -14,6 +14,7 @@ export default {
   "settings.browsingSection": "탐색",
   "settings.infiniteScroll": "무한 스크롤",
   "settings.close": "닫기",
+  "settings.language": "언어 / Language",
   "settings.tagsSection": "태그",
   "settings.showAllTags": "썸네일에서 모든 태그 표시",
   "settings.groupTags": "namespace마다 한 줄",

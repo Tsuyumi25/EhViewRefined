@@ -14,6 +14,7 @@ export default {
   "settings.browsingSection": "Browsing",
   "settings.infiniteScroll": "Infinite scrolling",
   "settings.close": "Close",
+  "settings.language": "Language",
   "settings.tagsSection": "Tags",
   "settings.showAllTags": "Show all tags in Thumbnail",
   "settings.groupTags": "One row per namespace",
