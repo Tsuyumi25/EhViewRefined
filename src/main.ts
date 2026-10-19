@@ -4,6 +4,7 @@ import { startPagination } from '@/services/source/pagination'
 import { startLiveUrl } from '@/services/source/liveUrl'
 import { startListingWindow } from '@/services/rendering/listingWindow'
 import { startSettingsHook, startSettingsLaunchers } from '@/services/settingsUi'
+import { startSettingsMenu } from '@/services/settingsMenu'
 import {
   getInfiniteScroll, getLocaleChoice, subscribeAllMyTags, subscribeAllOtherTags, subscribeGroupTags, subscribeInfiniteScroll,
   subscribeLocaleChoice, subscribeUploaderTag,
@@ -15,6 +16,7 @@ announcePresence(document, __APP_VERSION__)
 setLocale(getLocaleChoice())
 const stopObservingLocale = subscribeLocaleChoice(next => setLocale(next))
 const stopSettingsHook = startSettingsHook()
+const stopSettingsMenu = startSettingsMenu()
 // Read before anything rewrites the address, so turning infinite scroll off and on still knows where the page began
 const origin = location.href
 
@@ -54,5 +56,6 @@ window.addEventListener('pagehide', event => {
   stopLiveUrl?.()
   stopSettingsLaunchers?.()
   stopSettingsHook()
+  stopSettingsMenu()
   startup.dispose()
 })
