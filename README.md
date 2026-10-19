@@ -82,6 +82,16 @@ const myRating = element.getAttribute('data-evr-my-rating') // set only when the
 
 Once users install this script and use its simulated views, the site's view mode stays in Extended. Other scripts can send search requests in Extended mode to retrieve complete tags. Eh View Refined handles the displayed layout, so those requests leave the user's chosen simulated view unchanged.
 
+### Opening the Settings
+
+Dispatching `evr:open-settings` on `document` opens the Eh View Refined settings, on any page where `data-evr-version` is present. The listener is in place from `document-start`. The event carries no data, so a plain `Event` works from any sandbox. When the settings close, focus returns to the element that had it when the event was dispatched, which is usually the button that sent it.
+
+```js
+if (document.documentElement.hasAttribute('data-evr-version')) {
+  document.dispatchEvent(new Event('evr:open-settings'))
+}
+```
+
 ## Development
 
 ```sh

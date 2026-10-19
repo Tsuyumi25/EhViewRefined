@@ -4,7 +4,7 @@ import { startPagination } from '@/services/source/pagination'
 import { startLiveUrl } from '@/services/source/liveUrl'
 import { startListingWindow } from '@/services/rendering/listingWindow'
 import { startTagVisibility } from '@/services/rendering/tagVisibility'
-import { startSettingsUi } from '@/services/settingsUi'
+import { startSettingsHook, startSettingsLaunchers } from '@/services/settingsUi'
 import {
   getInfiniteScroll, getLocaleChoice, subscribeGroupTags, subscribeInfiniteScroll, subscribeLocaleChoice, subscribeUploaderTag,
 } from '@/services/settings'
@@ -14,13 +14,14 @@ announcePresence(document, __APP_VERSION__)
 // Before anything writes text into the page, so the first render is already in the chosen language
 setLocale(getLocaleChoice())
 const stopObservingLocale = subscribeLocaleChoice(next => setLocale(next))
+const stopSettingsHook = startSettingsHook()
 // Read before anything rewrites the address, so turning infinite scroll off and on still knows where the page began
 const origin = location.href
 
 let stopPagination: (() => void) | undefined
 let stopWindow: (() => void) | undefined
 let stopLiveUrl: (() => void) | undefined
-let stopSettingsUi: (() => void) | undefined
+let stopSettingsLaunchers: (() => void) | undefined
 let stopObservingPagination: (() => void) | undefined
 let stopObservingTags: (() => void)[] = []
 const stopTagVisibility = startTagVisibility(document)
@@ -40,7 +41,7 @@ const startup = startEarlyListing(switcher => {
     stopObservingPagination = subscribeInfiniteScroll(syncPagination)
     stopObservingTags = [subscribeGroupTags, subscribeUploaderTag].map(subscribe => subscribe(() => presentation.refreshTags()))
   }
-  stopSettingsUi = startSettingsUi()
+  stopSettingsLaunchers = startSettingsLaunchers()
 })
 
 window.addEventListener('pagehide', event => {
@@ -51,7 +52,8 @@ window.addEventListener('pagehide', event => {
   stopPagination?.()
   stopWindow?.()
   stopLiveUrl?.()
-  stopSettingsUi?.()
+  stopSettingsLaunchers?.()
+  stopSettingsHook()
   stopTagVisibility()
   startup.dispose()
 })

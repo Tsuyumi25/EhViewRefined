@@ -82,6 +82,16 @@ const myRating = element.getAttribute('data-evr-my-rating') // 只有使用者�
 
 讓使用者安裝本插件並使用模擬視圖後，網站端的 view mode 會始終維持 Extended。其他腳本可以直接以 Extended mode 發送 search request，取得完整標籤；使用者看到的排版由本插件處理，無須擔心這些請求改變使用者選擇的模擬視圖。
 
+### 打開設定
+
+在 `document` 上發出 `evr:open-settings` 事件，就會打開 Eh View Refined 的設定；只要頁面上有 `data-evr-version` 就能用。listener 從 `document-start` 就已經掛好。這個事件不帶任何資料，所以從任何 sandbox 發出一般的 `Event` 都可以。設定關閉時，焦點會回到發出事件當下持有焦點的元素，通常就是發出事件的那顆按鈕。
+
+```js
+if (document.documentElement.hasAttribute('data-evr-version')) {
+  document.dispatchEvent(new Event('evr:open-settings'))
+}
+```
+
 ## 開發
 
 ```sh

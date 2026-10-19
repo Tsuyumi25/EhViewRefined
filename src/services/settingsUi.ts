@@ -4,6 +4,13 @@ import SettingsPopup from '@/components/SettingsPopup.vue'
 import styles from '@/styles/settings.css?inline'
 import { findModeSelects, observeModeSelects } from './modeSelects'
 
+/**
+ * Other scripts open the settings with document.dispatchEvent(new Event(openSettingsEvent)).
+ * A plain event carries nothing across sandboxes, so it reaches us from any script manager
+ * without touching the page's globals.
+ */
+export const openSettingsEvent = 'evr:open-settings'
+
 const styleId = 'evr-settings-style'
 const hostAttribute = 'data-evr-settings'
 
@@ -15,17 +22,57 @@ function installStyles(doc: Document): void {
   ;(doc.head ?? doc.documentElement).append(style)
 }
 
+function scopeClass(): string {
+  return location.hostname === 'exhentai.org' ? 'evr-scope evr-scope--dark' : 'evr-scope'
+}
+
 function isVisible(select: HTMLSelectElement): boolean {
   return typeof select.checkVisibility === 'function'
     ? select.checkVisibility()
     : select.offsetParent !== null
 }
 
-export function startSettingsUi(): () => void {
-  installStyles(document)
-  const scopeClass =
-    location.hostname === 'exhentai.org' ? 'evr-scope evr-scope--dark' : 'evr-scope'
+let overlay: HTMLElement | null = null
+let overlayApp: App | null = null
+let trigger: HTMLElement | null = null
 
+function closeSettings() {
+  if (!overlay) return
+  overlayApp?.unmount()
+  overlay.remove()
+  overlayApp = null
+  overlay = null
+  const returnTo = trigger
+  trigger = null
+  if (returnTo?.isConnected) returnTo.focus()
+}
+
+/** source gets the focus back when the popup closes */
+function openSettings(source: Element | null) {
+  if (overlay) return
+  trigger = source instanceof HTMLElement ? source : null
+  overlay = document.createElement('div')
+  overlay.className = scopeClass()
+  overlay.setAttribute('translate', 'no')
+  ;(document.body ?? document.documentElement).append(overlay)
+  overlayApp = createApp(SettingsPopup, { onClose: closeSettings })
+  overlayApp.mount(overlay)
+}
+
+/** Runs on every page from document-start, so a script that loads later always finds the listener in place */
+export function startSettingsHook(): () => void {
+  installStyles(document)
+  // The caller's own button still has the focus while its click handler dispatches
+  const onOpen = () => openSettings(document.activeElement)
+  document.addEventListener(openSettingsEvent, onOpen)
+  return () => {
+    document.removeEventListener(openSettingsEvent, onOpen)
+    closeSettings()
+    document.getElementById(styleId)?.remove()
+  }
+}
+
+export function startSettingsLaunchers(): () => void {
   const launchers = new Map<HTMLSelectElement, { host: HTMLElement; app: App }>()
   const resizeObserver = new ResizeObserver(entries => {
     for (const entry of entries) {
@@ -43,31 +90,6 @@ export function startSettingsUi(): () => void {
     const style = getComputedStyle(select)
     if (host.style.verticalAlign !== style.verticalAlign) host.style.verticalAlign = style.verticalAlign
     if (host.style.font !== style.font) host.style.font = style.font
-  }
-  let overlay: HTMLElement | null = null
-  let overlayApp: App | null = null
-  let trigger: HTMLElement | null = null
-
-  function closePopup() {
-    if (!overlay) return
-    overlayApp?.unmount()
-    overlay.remove()
-    overlayApp = null
-    overlay = null
-    const returnTo = trigger
-    trigger = null
-    if (returnTo?.isConnected) returnTo.focus()
-  }
-
-  function openPopup(source: HTMLElement | null) {
-    if (overlay) return
-    trigger = source
-    overlay = document.createElement('div')
-    overlay.className = scopeClass
-    overlay.setAttribute('translate', 'no')
-    document.body.append(overlay)
-    overlayApp = createApp(SettingsPopup, { onClose: closePopup })
-    overlayApp.mount(overlay)
   }
 
   function release(select: HTMLSelectElement) {
@@ -94,11 +116,11 @@ export function startSettingsUi(): () => void {
         continue
       }
       const host = document.createElement('span')
-      host.className = `${scopeClass} evr-settings-host`
+      host.className = `${scopeClass()} evr-settings-host`
       host.setAttribute(hostAttribute, '')
       host.setAttribute('translate', 'no')
       const app = createApp(SettingsButton, {
-        onOpen: () => openPopup(host.querySelector('button')),
+        onOpen: () => openSettings(host.querySelector('button')),
       })
       select.after(host)
       app.mount(host)
@@ -119,8 +141,6 @@ export function startSettingsUi(): () => void {
   return () => {
     stopObserving()
     resizeObserver.disconnect()
-    closePopup()
     for (const select of [...launchers.keys()]) release(select)
-    document.getElementById(styleId)?.remove()
   }
 }
