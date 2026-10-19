@@ -92,6 +92,12 @@
 }
 
 
+/* !important outranks a plain inline overflow, so another script writing body's
+   inline style cannot unlock the page while the settings are open. */
+html[data-evr-scroll-locked] body {
+  overflow: hidden !important;
+}
+
 .evr-popup-overlay {
   position: fixed;
   inset: 0;

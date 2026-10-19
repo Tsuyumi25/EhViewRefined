@@ -39,3 +39,24 @@ describe('opening the settings from another script', () => {
     expect(document.querySelector('[role="dialog"]')).toBeNull()
   })
 })
+
+// The lock itself is a settings.css rule, which vitest does not load; what matters here is that body's inline style stays someone else's
+describe('locking the page while the settings are open', () => {
+  it('never writes body’s inline overflow, whichever side closes first', () => {
+    stop = startSettingsHook()
+    const { body, documentElement: root } = document
+    body.style.overflow = 'hidden'
+    document.dispatchEvent(new Event(openSettingsEvent))
+    expect(root.hasAttribute('data-evr-scroll-locked')).toBe(true)
+    body.style.overflow = ''
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    expect(root.hasAttribute('data-evr-scroll-locked')).toBe(false)
+    expect(body.style.overflow).toBe('')
+
+    document.dispatchEvent(new Event(openSettingsEvent))
+    body.style.overflow = 'hidden'
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    expect(body.style.overflow).toBe('hidden')
+  })
+})

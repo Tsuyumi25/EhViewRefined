@@ -47,7 +47,10 @@ const localeOptions: { value: Locale; label: string }[] = [
 
 const dialog = ref<HTMLElement | null>(null)
 let unsubscribers: (() => void)[] = []
-let restoreOverflow = ''
+// body's inline overflow is one slot shared by the site and every script. Restoring what we found
+// brings back a lock its owner has since released; clearing it removes a lock someone still holds.
+// We mark only our own attribute and let settings.css do the locking
+const scrollLockAttribute = 'data-evr-scroll-locked'
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape' || event.defaultPrevented) return
@@ -71,15 +74,14 @@ onMounted(() => {
     entry.value.value = value
   }))
   document.addEventListener('keydown', onKeydown, true)
-  restoreOverflow = document.body.style.overflow
-  document.body.style.overflow = 'hidden'
+  document.documentElement.setAttribute(scrollLockAttribute, '')
   dialog.value?.focus()
 })
 
 onBeforeUnmount(() => {
   for (const unsubscribe of unsubscribers) unsubscribe()
   document.removeEventListener('keydown', onKeydown, true)
-  document.body.style.overflow = restoreOverflow
+  document.documentElement.removeAttribute(scrollLockAttribute)
 })
 </script>
 
