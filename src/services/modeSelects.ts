@@ -31,7 +31,6 @@ export function decorateModeSelect(select: HTMLSelectElement): void {
   group.setAttribute('translate', 'no')
   localizeLabel(group, 'select.group')
   for (const view of listViews) {
-    if (view === 'e') continue
     const option = document.createElement('option')
     // LOLICON reads select.value at startup; the optgroup identifies simulated choices.
     option.value = view
@@ -55,10 +54,10 @@ export function readModeChoice(select: HTMLSelectElement): string {
   return select.value
 }
 
+// Whenever this script runs, it is the one drawing the listing, Extended included
 export function syncModeSelect(select: HTMLSelectElement, view: ListView): void {
   const selected = Array.from(select.options).find(option =>
-    option.value === view
-    && Boolean(option.closest(`optgroup[${groupAttribute}]`)) === (view !== 'e'),
+    option.value === view && option.closest(`optgroup[${groupAttribute}]`),
   )
   if (!selected) return
   for (const option of select.options) option.toggleAttribute('selected', option === selected)

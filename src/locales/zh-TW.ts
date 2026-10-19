@@ -2,6 +2,7 @@ export default {
   "views.m": "EVR 最小模式",
   "views.p": "EVR 最小模式+",
   "views.l": "EVR 緊湊",
+  "views.e": "EVR 擴展",
   "views.t": "EVR 縮略圖",
   "select.group": "Eh View Refined 排版",
   "columns.published": "發布時間",

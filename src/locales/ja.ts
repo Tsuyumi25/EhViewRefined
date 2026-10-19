@@ -2,6 +2,7 @@ export default {
   "views.m": "EVR Minimal",
   "views.p": "EVR Minimal+",
   "views.l": "EVR Compact",
+  "views.e": "EVR Extended",
   "views.t": "EVR Thumbnail",
   "select.group": "Eh View Refined レイアウト",
   "columns.published": "公開日時",
