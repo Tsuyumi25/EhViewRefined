@@ -94,10 +94,16 @@ export async function captureNativeListings({ url = sourceUrl, directory, interv
   return report
 }
 
+// 同一個測試檔還有寫給固定 fixture 的測試（例如只認得 fixture 裡出現的星等位置），拿即時頁面跑沒有意義；
+// 這裡只跑版型相容性那一組，每種模擬版型各一個，都跟 Extended 比對
+const LAYOUT_SUITE = 'native listing DOM compatibility'
+const comparedViews = modes.filter(mode => mode !== 'e')
+
 export async function compareNativeListings(directory) {
   const output = resolve(directory, 'tests.json')
   const run = spawnSync('pnpm', [
     'exec', 'vitest', 'run', 'src/services/rendering/nativeListing.test.ts',
+    `--testNamePattern=^${LAYOUT_SUITE} `,
     '--reporter=default', '--reporter=json', `--outputFile=${output}`,
   ], {
     cwd: repository,
@@ -108,11 +114,13 @@ export async function compareNativeListings(directory) {
   try {
     if (run.error) throw run.error
     const tests = JSON.parse(await readFile(output, 'utf8'))
-    result.passed = tests.numPassedTests
-    result.failed = tests.numFailedTests
-    if (run.status === 0 && tests.success && tests.numPassedTests === 4) result.status = 'compatible'
-    else if (run.status !== 0 && tests.numFailedTests > 0) result.status = 'incompatible'
-    else result.error = 'The four native layout checks did not complete'
+    const checks = tests.testResults.flatMap(file => file.assertionResults)
+      .filter(test => test.ancestorTitles[0] === LAYOUT_SUITE)
+    result.passed = checks.filter(test => test.status === 'passed').length
+    result.failed = checks.filter(test => test.status === 'failed').length
+    if (result.failed > 0) result.status = 'incompatible'
+    else if (run.status === 0 && result.passed === comparedViews.length) result.status = 'compatible'
+    else result.error = `Expected ${comparedViews.length} layout checks to pass, ${result.passed} passed`
   } catch (error) {
     result.error = error instanceof Error ? error.message : String(error)
   }
