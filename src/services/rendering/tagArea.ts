@@ -1,3 +1,4 @@
+import { localizeText, type MessageKey } from '@/composables/useI18n'
 import type { ExtendedGallery } from '../gallerySnapshot'
 import { UPLOADER_TAG_CLASS } from '../source/extendedAdapter'
 import { cloneTag } from './galleryCompatibility'
@@ -35,11 +36,30 @@ export function uploaderTag(doc: Document, name: string): HTMLElement {
   return tag
 }
 
+// The site's own namespaces, and the uploader row we add; a namespace the site adds later keeps its own name
+const NAMESPACE_LABELS: Record<string, MessageKey> = {
+  language: 'namespaces.language',
+  parody: 'namespaces.parody',
+  character: 'namespaces.character',
+  group: 'namespaces.group',
+  artist: 'namespaces.artist',
+  cosplayer: 'namespaces.cosplayer',
+  male: 'namespaces.male',
+  female: 'namespaces.female',
+  mixed: 'namespaces.mixed',
+  other: 'namespaces.other',
+  reclass: 'namespaces.reclass',
+  location: 'namespaces.location',
+  temp: 'namespaces.temp',
+  [UPLOADER_NAMESPACE]: 'namespaces.uploader',
+}
+
 function groupRow(doc: Document, namespace: string | null, tags: readonly HTMLElement[]): HTMLTableRowElement {
   const row = doc.createElement('tr')
   const label = doc.createElement('td')
   label.className = 'tc'
-  label.textContent = namespace ? `${namespace}:` : ''
+  if (namespace !== null && Object.hasOwn(NAMESPACE_LABELS, namespace)) localizeText(label, NAMESPACE_LABELS[namespace])
+  else label.textContent = namespace ? `${namespace}:` : ''
   const cell = doc.createElement('td')
   cell.append(...tags)
   row.append(label, cell)

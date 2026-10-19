@@ -11,6 +11,7 @@ import thumbnail from '../../../tests/fixtures/native-listing/thumbnail.html?raw
 import { adaptExtendedGallery, outerRows } from '../source/extendedAdapter'
 import { createNativeListing } from './nativeListing'
 import { plainTagOptions, type TagOptions } from './tagArea'
+import { setLocale } from '@/composables/useI18n'
 
 const fixtures = { e: extended, m: minimal, p: minimalPlus, l: compact, t: thumbnail }
 const fixtureDirectory = process.env.EVR_NATIVE_FIXTURE_DIR
@@ -210,6 +211,24 @@ describe('tag options', () => {
         expect(last.querySelector('td.tc')!.textContent).toBe('uploader:')
         expect(last.contains(shown[0])).toBe(true)
       }
+    }
+  })
+
+  // The fixture's namespaces are stand-ins the site does not have, so they show what an unknown namespace keeps
+  it('names the rows it knows in the reader\'s language, keeps the others as the site wrote them, and follows a later switch', () => {
+    const source = parseListing(fixtures.e)
+    const siteLabels = new Set(galleryRows(source).flatMap(sourceGroups).map(([label]) => label))
+    try {
+      setLocale('zh-TW')
+      const listing = render(source, 't', { group: true, uploader: true })
+      document.body.append(listing.element)
+      const labels = () => new Set(Array.from(listing.element.querySelectorAll('.evr-tag-groups td.tc'), cell => cell.textContent))
+      expect(labels()).toEqual(new Set([...siteLabels, '上傳者:']))
+      setLocale('en')
+      expect(labels()).toEqual(new Set([...siteLabels, 'uploader:']))
+      listing.element.remove()
+    } finally {
+      setLocale('en')
     }
   })
 
