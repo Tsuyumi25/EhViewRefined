@@ -65,6 +65,7 @@
 
 .evr-settings-host {
   display: inline-flex;
+  margin-inline-start: var(--evr-ctrl-gap);
   vertical-align: middle;
 }
 
