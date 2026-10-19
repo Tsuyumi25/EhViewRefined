@@ -36,10 +36,6 @@ function structure(element: Element, depth = 0): string[] {
   ]
 }
 
-function galleryHref(item: Element): string | null {
-  return item.querySelector('a[href*="/g/"]')?.getAttribute('href') ?? null
-}
-
 function omitNativeAdvertisements(listing: Element): void {
   for (const row of outerRows(listing)) {
     if (row.children.length === 1 && row.firstElementChild?.className === 'itd'
@@ -47,17 +43,7 @@ function omitNativeAdvertisements(listing: Element): void {
   }
 }
 
-function addCompleteThumbnailTags(native: Element, source: Element): void {
-  const rows = new Map(outerRows(source).map(row => [galleryHref(row), row]))
-  for (const card of native.children) {
-    const sourceRow = rows.get(galleryHref(card))
-    if (!sourceRow) throw new Error('Native thumbnail has no matching Extended gallery')
-    const tags = native.ownerDocument.createElement('div')
-    tags.className = 'gl6t'
-    tags.append(...Array.from(sourceRow.querySelectorAll('.gl4e .gt, .gl4e .gtl, .gl4e .gtw'), tag => tag.cloneNode(true)))
-    card.insertBefore(tags, card.querySelector(':scope > .gl5t'))
-  }
-}
+const completeTags: TagOptions = { ...plainTagOptions, allMyTags: true, allOtherTags: true }
 
 function render(source: HTMLElement, view: 'm' | 'p' | 'l' | 't', options: TagOptions = plainTagOptions) {
   const listing = createNativeListing(source.ownerDocument, view, options)
@@ -74,7 +60,6 @@ describe('native listing DOM compatibility', () => {
     const source = parseListing(fixtures.e)
     const native = parseListing(fixtures[view])
     omitNativeAdvertisements(native)
-    if (view === 't') addCompleteThumbnailTags(native, source)
     const rendered = render(source, view)
 
     expect(galleryLinks(rendered.element)).toEqual(galleryLinks(native))
@@ -169,12 +154,11 @@ function galleryRows(source: HTMLElement) {
 }
 
 describe('public per-tag metadata', () => {
-  // The fixture styles no tag, so Minimal+ draws none and has nothing to check
-  it.each(['l', 't'] as const)('every tag drawn in %s names itself and its namespace', view => {
+  it.each(['m', 'p', 'l', 't'] as const)('every tag drawn in %s names itself and its namespace', view => {
     const source = parseListing(fixtures.e)
     const expected = new Map(galleryRows(source).flatMap(row => sourceGroups(row).flatMap(([label, names]) =>
       names.map(name => [name, label.slice(0, -1)] as const))))
-    const tags = Array.from(render(source, view).element.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'))
+    const tags = Array.from(render(source, view, completeTags).element.querySelectorAll<HTMLElement>('.gt, .gtl, .gtw'))
     expect(tags.length).toBeGreaterThan(0)
     for (const tag of tags) {
       expect(tag.getAttribute('data-evr-tag')).toBe(tag.title)
@@ -183,11 +167,21 @@ describe('public per-tag metadata', () => {
   })
 })
 
+describe('complete tags', () => {
+  it.each(['m', 'p', 'l', 't'] as const)('%s draws every tag of every gallery once both kinds are complete', view => {
+    const source = parseListing(fixtures.e)
+    const expected = galleryRows(source).map(row => sourceGroups(row).flatMap(([, names]) => names).sort())
+    const items = Array.from(render(source, view, completeTags).element.querySelectorAll('[data-evr-tags]'))
+    expect(items.map(item => Array.from(item.querySelectorAll<HTMLElement>('[data-evr-tag]'), tag => tag.title).sort()))
+      .toEqual(expected)
+  })
+})
+
 describe('tag options', () => {
   it('groups the tags of every gallery into the rows Extended shows, in the same order', () => {
     const source = parseListing(fixtures.e)
     const expected = galleryRows(source).map(sourceGroups)
-    const cards = Array.from(render(source, 't', { group: true, uploader: false }).element.children)
+    const cards = Array.from(render(source, 't', { ...completeTags, group: true }).element.children)
     expect(cards.map(card => Array.from(card.querySelectorAll('.evr-tag-groups tr'), line => [
       line.querySelector('td.tc')!.textContent,
       Array.from(line.querySelectorAll<HTMLElement>('[data-evr-tag]'), tag => tag.title),
@@ -197,7 +191,7 @@ describe('tag options', () => {
   it.each([false, true])('adds the uploader as one more tag (grouped: %s) without touching the tag data', group => {
     const source = parseListing(fixtures.e)
     const plain = render(source, 't')
-    const listing = render(source, 't', { group, uploader: true })
+    const listing = render(source, 't', { ...completeTags, group, uploader: true })
     const items = Array.from(listing.element.children)
     expect(items.map(item => item.getAttribute('data-evr-tags')))
       .toEqual(Array.from(plain.element.children, item => item.getAttribute('data-evr-tags')))
@@ -220,7 +214,7 @@ describe('tag options', () => {
     const siteLabels = new Set(galleryRows(source).flatMap(sourceGroups).map(([label]) => label))
     try {
       setLocale('zh-TW')
-      const listing = render(source, 't', { group: true, uploader: true })
+      const listing = render(source, 't', { ...completeTags, group: true, uploader: true })
       document.body.append(listing.element)
       const labels = () => new Set(Array.from(listing.element.querySelectorAll('.evr-tag-groups td.tc'), cell => cell.textContent))
       expect(labels()).toEqual(new Set([...siteLabels, '上傳者:']))
@@ -234,7 +228,7 @@ describe('tag options', () => {
 
   it('shows the uploader even in Minimal, which draws no tags of its own', () => {
     const source = parseListing(fixtures.e)
-    const listing = render(source, 'm', { group: false, uploader: true })
+    const listing = render(source, 'm', { ...plainTagOptions, uploader: true })
     const named = Array.from(listing.element.querySelectorAll('[data-evr-uploader]'))
     expect(named.length).toBeGreaterThan(0)
     for (const item of named) expect(item.querySelectorAll('.evr-uploader-tag')).toHaveLength(1)
@@ -265,7 +259,7 @@ describe('highlighted tags', () => {
     const source = parseListing(fixtures.e)
     const [highlighted, plain] = Array.from(source.querySelectorAll<HTMLElement>('.gl4e .gt, .gl4e .gtl'))
     highlighted.setAttribute('style', 'color:#090909;border-color:#E0C6FF;background:radial-gradient(#E0C6FF,#c0a6df)')
-    const listing = render(source, 't')
+    const listing = render(source, 't', completeTags)
     const drawn = (name: string) => Array.from(listing.element.querySelectorAll<HTMLElement>('[data-evr-tag]'))
       .find(tag => tag.getAttribute('data-evr-tag') === name)!
     expect(drawn(highlighted.title).hasAttribute('data-evr-tag-plain')).toBe(false)

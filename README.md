@@ -101,7 +101,7 @@ pnpm test
 pnpm build
 ```
 
-`pnpm test` includes offline DOM compatibility tests using five anonymized native listing fixtures in `tests/fixtures/native-listing/`, captured from [this Non-H listing](https://e-hentai.org/?f_cats=767&prev=45313). The tests render Extended data into each simulated view and compare the entire listing's element hierarchy, child order and class tokens with the corresponding native fixture. Native advertisement rows are excluded; Thumbnail's complete-tag region is checked against the Extended fixture.
+`pnpm test` includes offline DOM compatibility tests using five anonymized native listing fixtures in `tests/fixtures/native-listing/`, captured from [this Non-H listing](https://e-hentai.org/?f_cats=767&prev=45313). The tests render Extended data into each simulated view and compare the entire listing's element hierarchy, child order and class tokens with the corresponding native fixture. Native advertisement rows are excluded. Each view draws its tags by the site's own rule here, with the two settings that show every tag turned off.
 
 Fixture text, links, resource URLs and event-handler contents are anonymized while element structure, classes and layout styles are retained. Text, other attributes, visual layout and highlight-specific behavior are outside this structural contract. Tests require no network access.
 

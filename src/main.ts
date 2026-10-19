@@ -3,10 +3,10 @@ import { startEarlyListing } from '@/services/startup'
 import { startPagination } from '@/services/source/pagination'
 import { startLiveUrl } from '@/services/source/liveUrl'
 import { startListingWindow } from '@/services/rendering/listingWindow'
-import { startTagVisibility } from '@/services/rendering/tagVisibility'
 import { startSettingsHook, startSettingsLaunchers } from '@/services/settingsUi'
 import {
-  getInfiniteScroll, getLocaleChoice, subscribeGroupTags, subscribeInfiniteScroll, subscribeLocaleChoice, subscribeUploaderTag,
+  getInfiniteScroll, getLocaleChoice, subscribeAllMyTags, subscribeAllOtherTags, subscribeGroupTags, subscribeInfiniteScroll,
+  subscribeLocaleChoice, subscribeUploaderTag,
 } from '@/services/settings'
 import { setLocale } from '@/composables/useI18n'
 
@@ -24,7 +24,6 @@ let stopLiveUrl: (() => void) | undefined
 let stopSettingsLaunchers: (() => void) | undefined
 let stopObservingPagination: (() => void) | undefined
 let stopObservingTags: (() => void)[] = []
-const stopTagVisibility = startTagVisibility(document)
 const startup = startEarlyListing(switcher => {
   const presentation = switcher.presentation
   if (presentation) {
@@ -39,7 +38,8 @@ const startup = startEarlyListing(switcher => {
     }
     syncPagination(getInfiniteScroll())
     stopObservingPagination = subscribeInfiniteScroll(syncPagination)
-    stopObservingTags = [subscribeGroupTags, subscribeUploaderTag].map(subscribe => subscribe(() => presentation.refreshTags()))
+    stopObservingTags = [subscribeGroupTags, subscribeUploaderTag, subscribeAllMyTags, subscribeAllOtherTags]
+      .map(subscribe => subscribe(() => presentation.refreshTags()))
   }
   stopSettingsLaunchers = startSettingsLaunchers()
 })
@@ -54,6 +54,5 @@ window.addEventListener('pagehide', event => {
   stopLiveUrl?.()
   stopSettingsLaunchers?.()
   stopSettingsHook()
-  stopTagVisibility()
   startup.dispose()
 })

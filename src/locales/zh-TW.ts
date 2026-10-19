@@ -30,7 +30,8 @@ export default {
   "settings.close": "關閉",
   "settings.language": "語言 / Language",
   "settings.tagsSection": "標籤",
-  "settings.showAllTags": "縮略圖顯示全部標籤",
+  "settings.allMyTags": "顯示完整的 My Tags 標籤",
+  "settings.allOtherTags": "顯示完整的非 My Tags 標籤",
   "settings.groupTags": "每個 namespace 一列",
   "settings.uploaderTag": "把上傳者顯示在標籤裡",
 }

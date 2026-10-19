@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import extended from '../../tests/fixtures/native-listing/extended.html?raw'
 import { createListingPipeline, type ListingPipeline } from './listingPipeline'
 import { galleryKey, outerRows, sourceSelector } from './source/extendedAdapter'
+import { plainTagOptions } from './rendering/tagArea'
 
 const RELAY = ['data-evr-tags', 'data-evr-uploader', 'data-evr-rating', 'data-evr-my-rating']
 
@@ -79,7 +80,7 @@ describe('createListingPipeline', () => {
   })
 
   it('keeps one uploader tag per gallery through view switches and follows the setting in every view', () => {
-    const options = { group: false, uploader: true }
+    const options = { ...plainTagOptions, uploader: true }
     const pipeline = createListingPipeline(source, () => options)
     const data = outerRows(source).filter(row => galleryKey(row)).map(row => row.getAttribute('data-evr-tags'))
     const uploaders = () => shown(pipeline).map(node => Array.from(

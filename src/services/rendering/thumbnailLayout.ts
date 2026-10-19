@@ -53,9 +53,13 @@ function thumbnailItem(doc: Document, gallery: ExtendedGallery, tagOptions: TagO
   frame.append(link)
   card.append(frame)
 
-  const tags = element(doc, 'div', 'gl6t')
-  tags.append(...tagAreaOf(gallery, 'all', tagOptions))
-  card.append(tags)
+  // The site draws this row only for a gallery with tags to show
+  const tags = tagAreaOf(gallery, 'styled', tagOptions)
+  if (tags.length > 0) {
+    const row = element(doc, 'div', 'gl6t')
+    row.append(...tags)
+    card.append(row)
+  }
 
   const footer = element(doc, 'div', 'gl5t')
   const left = element(doc, 'div')

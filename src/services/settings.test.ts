@@ -46,37 +46,37 @@ describe('script-owned settings', () => {
     })
     const settings = await import('./settings')
     const seen: boolean[] = []
-    const stop = settings.subscribeShowAllTags(value => seen.push(value))
+    const stop = settings.subscribeAllOtherTags(value => seen.push(value))
 
-    settings.setShowAllTags(false)
-    settings.setShowAllTags(false)
-    expect(settings.getShowAllTags()).toBe(false)
+    settings.setAllOtherTags(false)
+    settings.setAllOtherTags(false)
+    expect(settings.getAllOtherTags()).toBe(false)
     expect(seen).toEqual([false])
-    expect(manager.values.get(settings.showAllTagsKey)).toBe('false')
+    expect(manager.values.get(settings.allOtherTagsKey)).toBe('false')
     stop()
 
     vi.resetModules()
-    expect((await import('./settings')).getShowAllTags()).toBe(false)
+    expect((await import('./settings')).getAllOtherTags()).toBe(false)
   })
 
   it('shares changes between script instances without duplicate notifications', async () => {
     const first = await import('./settings')
     const firstSeen: boolean[] = []
-    const stopFirst = first.subscribeShowAllTags(value => firstSeen.push(value))
+    const stopFirst = first.subscribeAllOtherTags(value => firstSeen.push(value))
     vi.resetModules()
     const second = await import('./settings')
     const secondSeen: boolean[] = []
-    const stopSecond = second.subscribeShowAllTags(value => secondSeen.push(value))
+    const stopSecond = second.subscribeAllOtherTags(value => secondSeen.push(value))
 
-    second.setShowAllTags(false)
-    first.setShowAllTags(true)
-    expect(first.getShowAllTags()).toBe(true)
-    expect(second.getShowAllTags()).toBe(true)
+    second.setAllOtherTags(false)
+    first.setAllOtherTags(true)
+    expect(first.getAllOtherTags()).toBe(true)
+    expect(second.getAllOtherTags()).toBe(true)
     expect(firstSeen).toEqual([false, true])
     expect(secondSeen).toEqual([false, true])
 
     stopFirst()
-    second.setShowAllTags(false)
+    second.setAllOtherTags(false)
     expect(firstSeen).toEqual([false, true])
     expect(secondSeen).toEqual([false, true, false])
     stopSecond()
@@ -84,27 +84,27 @@ describe('script-owned settings', () => {
 
   it('restores all tags when the saved choice is deleted remotely', async () => {
     const settings = await import('./settings')
-    settings.setShowAllTags(false)
+    settings.setAllOtherTags(false)
     const seen: boolean[] = []
-    const stop = settings.subscribeShowAllTags(value => seen.push(value))
-    manager.values.delete(settings.showAllTagsKey)
+    const stop = settings.subscribeAllOtherTags(value => seen.push(value))
+    manager.values.delete(settings.allOtherTagsKey)
     for (const listener of manager.listeners.values()) {
-      listener.callback(settings.showAllTagsKey, 'false', undefined, true)
+      listener.callback(settings.allOtherTagsKey, 'false', undefined, true)
     }
-    expect(settings.getShowAllTags()).toBe(true)
+    expect(settings.getAllOtherTags()).toBe(true)
     expect(seen).toEqual([true])
     stop()
   })
 
   it('refreshes a cached choice when observation resumes', async () => {
     const settings = await import('./settings')
-    settings.setShowAllTags(false)
-    const stop = settings.subscribeShowAllTags(() => {})
+    settings.setAllOtherTags(false)
+    const stop = settings.subscribeAllOtherTags(() => {})
     stop()
-    manager.values.set(settings.showAllTagsKey, 'true')
+    manager.values.set(settings.allOtherTagsKey, 'true')
     const seen: boolean[] = []
-    const stopAgain = settings.subscribeShowAllTags(value => seen.push(value))
-    expect(settings.getShowAllTags()).toBe(true)
+    const stopAgain = settings.subscribeAllOtherTags(value => seen.push(value))
+    expect(settings.getAllOtherTags()).toBe(true)
     expect(seen).toEqual([true])
     stopAgain()
   })
@@ -112,10 +112,10 @@ describe('script-owned settings', () => {
   it('keeps the previous choice when script storage itself rejects a write', async () => {
     const settings = await import('./settings')
     const seen: boolean[] = []
-    const stop = settings.subscribeShowAllTags(value => seen.push(value))
+    const stop = settings.subscribeAllOtherTags(value => seen.push(value))
     manager.failWrites = true
-    expect(() => settings.setShowAllTags(false)).toThrow('Script storage failed')
-    expect(settings.getShowAllTags()).toBe(true)
+    expect(() => settings.setAllOtherTags(false)).toThrow('Script storage failed')
+    expect(settings.getAllOtherTags()).toBe(true)
     expect(seen).toEqual([])
     stop()
   })
@@ -124,21 +124,21 @@ describe('script-owned settings', () => {
     const first = await import('./settings')
     const tags: boolean[] = []
     const scrolling: boolean[] = []
-    const stopTags = first.subscribeShowAllTags(value => tags.push(value))
+    const stopTags = first.subscribeAllOtherTags(value => tags.push(value))
     const stopScrolling = first.subscribeInfiniteScroll(value => scrolling.push(value))
 
     first.setInfiniteScroll(false)
-    expect(first.getShowAllTags()).toBe(true)
+    expect(first.getAllOtherTags()).toBe(true)
     expect(tags).toEqual([])
-    first.setShowAllTags(false)
+    first.setAllOtherTags(false)
     first.setInfiniteScroll(true)
-    expect(first.getShowAllTags()).toBe(false)
+    expect(first.getAllOtherTags()).toBe(false)
     expect(tags).toEqual([false])
     expect(scrolling).toEqual([false, true])
 
     vi.resetModules()
     const second = await import('./settings')
-    expect(second.getShowAllTags()).toBe(false)
+    expect(second.getAllOtherTags()).toBe(false)
     expect(second.getInfiniteScroll()).toBe(true)
     const remote: boolean[] = []
     const stopRemote = second.subscribeInfiniteScroll(value => remote.push(value))
@@ -155,7 +155,7 @@ describe('script-owned settings', () => {
 
   it('resets a deleted scrolling preference without resetting the tag preference', async () => {
     const settings = await import('./settings')
-    settings.setShowAllTags(false)
+    settings.setAllOtherTags(false)
     settings.setInfiniteScroll(false)
     const seen: boolean[] = []
     const stop = settings.subscribeInfiniteScroll(value => seen.push(value))
@@ -165,7 +165,7 @@ describe('script-owned settings', () => {
         listener.callback(settings.infiniteScrollKey, 'false', undefined, true)
     }
     expect(settings.getInfiniteScroll()).toBe(true)
-    expect(settings.getShowAllTags()).toBe(false)
+    expect(settings.getAllOtherTags()).toBe(false)
     expect(seen).toEqual([true])
     stop()
   })

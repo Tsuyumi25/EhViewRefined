@@ -4,7 +4,8 @@ import { Languages, Tags, X } from '@lucide/vue'
 import { locale, t } from '@/composables/useI18n'
 import type { Locale } from '@/services/locale'
 import {
-  getShowAllTags, setShowAllTags, subscribeShowAllTags,
+  getAllMyTags, setAllMyTags, subscribeAllMyTags,
+  getAllOtherTags, setAllOtherTags, subscribeAllOtherTags,
   getInfiniteScroll, setInfiniteScroll, subscribeInfiniteScroll,
   getGroupTags, setGroupTags, subscribeGroupTags,
   getUploaderTag, setUploaderTag, subscribeUploaderTag,
@@ -33,7 +34,8 @@ const browsing = [toggle('settings.infiniteScroll', getInfiniteScroll, setInfini
 const tags = [
   toggle('settings.groupTags', getGroupTags, setGroupTags, subscribeGroupTags),
   toggle('settings.uploaderTag', getUploaderTag, setUploaderTag, subscribeUploaderTag),
-  toggle('settings.showAllTags', getShowAllTags, setShowAllTags, subscribeShowAllTags),
+  toggle('settings.allMyTags', getAllMyTags, setAllMyTags, subscribeAllMyTags),
+  toggle('settings.allOtherTags', getAllOtherTags, setAllOtherTags, subscribeAllOtherTags),
 ]
 
 // Each language is named in itself: someone stuck in a language they cannot read still finds their own

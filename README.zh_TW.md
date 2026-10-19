@@ -101,7 +101,7 @@ pnpm test
 pnpm build
 ```
 
-`pnpm test` 包含離線 DOM 相容性測試，使用 `tests/fixtures/native-listing/` 中從[這個 Non-H 列表](https://e-hentai.org/?f_cats=767&prev=45313)擷取的五份匿名化原生版型 fixture。測試將 Extended 資料渲染為各個模擬版型，與對應的原生 fixture 比較整個 listing 的元素階層、子元素順序與所有 class。原生廣告列排除於比較範圍外，Thumbnail 的完整標籤區則以 Extended fixture 核對。
+`pnpm test` 包含離線 DOM 相容性測試，使用 `tests/fixtures/native-listing/` 中從[這個 Non-H 列表](https://e-hentai.org/?f_cats=767&prev=45313)擷取的五份匿名化原生版型 fixture。測試將 Extended 資料渲染為各個模擬版型，與對應的原生 fixture 比較整個 listing 的元素階層、子元素順序與所有 class。原生廣告列排除於比較範圍外。比較時各版型照網站自己的規則畫標籤，兩個「顯示完整標籤」的設定都是關閉的。
 
 Fixture 的文字、連結、資源 URL 與事件處理器內容已匿名化，元素結構、class 與排版 style 保留。文字、其他屬性、視覺排版與高亮標籤專屬行為不在這份結構契約的範圍內。測試不需要網路連線。
 

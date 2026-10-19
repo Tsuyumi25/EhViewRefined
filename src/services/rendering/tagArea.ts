@@ -4,16 +4,20 @@ import { UPLOADER_TAG_CLASS } from '../source/extendedAdapter'
 import { cloneTag } from './galleryCompatibility'
 import { selectTagIndexes, type TagSelection } from './nativeTagSelection'
 
-/** How the simulated views lay out tags; both are the reader's own choices in the settings. */
+/** How the simulated views lay out tags; each is the reader's own choice in the settings. */
 export interface TagOptions {
   /** One row per namespace, the way Extended and the gallery page show them. */
   group: boolean
   /** The uploader drawn as one more tag, under its own uploader: row when grouped. */
   uploader: boolean
+  /** Every tag in the reader's My Tags, past what the view itself would draw. */
+  allMyTags: boolean
+  /** Every other tag, past what the view itself would draw. */
+  allOtherTags: boolean
 }
 
 /** The site's own layout with nothing added; the reader's defaults live in the settings. */
-export const plainTagOptions: TagOptions = { group: false, uploader: false }
+export const plainTagOptions: TagOptions = { group: false, uploader: false, allMyTags: false, allOtherTags: false }
 
 const UPLOADER_NAMESPACE = 'uploader'
 const GROUPS_CLASS = 'evr-tag-groups'
@@ -86,7 +90,7 @@ export function tagAreaOf(
   const doc = gallery.bindings.title.ownerDocument
   const { tags, uploader } = gallery.snapshot
   const groups = new Map<string | null, HTMLElement[]>()
-  for (const index of selectTagIndexes(tags, selection)) {
+  for (const index of selectTagIndexes(tags, selection, { styled: options.allMyTags, plain: options.allOtherTags })) {
     const clone = cloneTag(gallery.bindings.tags[index], tags[index].text)
     if (className !== undefined) clone.className = className
     const namespace = tags[index].namespace

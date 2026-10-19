@@ -59,12 +59,19 @@ function createBooleanSetting(key: string, defaultValue: boolean) {
   return createSetting<boolean>(key, raw => raw === 'true' ? true : raw === 'false' ? false : defaultValue)
 }
 
-export const showAllTagsKey = 'ehe:show-all-tags'
+export const allMyTagsKey = 'ehe:all-my-tags'
 export const {
-  get: getShowAllTags,
-  set: setShowAllTags,
-  subscribe: subscribeShowAllTags,
-} = createBooleanSetting(showAllTagsKey, true)
+  get: getAllMyTags,
+  set: setAllMyTags,
+  subscribe: subscribeAllMyTags,
+} = createBooleanSetting(allMyTagsKey, true)
+
+export const allOtherTagsKey = 'ehe:all-other-tags'
+export const {
+  get: getAllOtherTags,
+  set: setAllOtherTags,
+  subscribe: subscribeAllOtherTags,
+} = createBooleanSetting(allOtherTagsKey, true)
 
 export const groupTagsKey = 'ehe:group-tags'
 export const {

@@ -30,7 +30,8 @@ export default {
   "settings.close": "Close",
   "settings.language": "Language",
   "settings.tagsSection": "Tags",
-  "settings.showAllTags": "Show all tags in Thumbnail",
+  "settings.allMyTags": "Show every My Tags tag",
+  "settings.allOtherTags": "Show every other tag",
   "settings.groupTags": "One row per namespace",
   "settings.uploaderTag": "Show the uploader among the tags",
 }

@@ -30,7 +30,8 @@ export default {
   "settings.close": "닫기",
   "settings.language": "언어 / Language",
   "settings.tagsSection": "태그",
-  "settings.showAllTags": "썸네일에서 모든 태그 표시",
+  "settings.allMyTags": "My Tags 태그를 모두 표시",
+  "settings.allOtherTags": "나머지 태그를 모두 표시",
   "settings.groupTags": "namespace마다 한 줄",
   "settings.uploaderTag": "업로더를 태그로 표시",
 }
