@@ -201,32 +201,25 @@
   flex-shrink: 0;
 }
 
-.evr-settings__locale-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--evr-ctrl-gap);
-}
-
-.evr-settings__locale-btn {
-  font: inherit;
+/* g.css gives every bare select min-height: 27px, margin: 0 1px 1px and bold
+   text; a class outranks the element selector, so each is reset here. */
+.evr-scope select.evr-settings__select {
+  align-self: flex-start;
+  min-height: 0;
   height: var(--evr-ctrl-h);
   margin: 0;
-  padding: 0 10px;
+  padding: 0 var(--evr-ctrl-padding);
   border: var(--evr-border-width) solid var(--evr-border);
   border-radius: var(--evr-radius-sm);
   background: var(--evr-bg-btn);
   color: var(--evr-text);
+  font: inherit;
   cursor: pointer;
-  transition: var(--evr-transition-base);
 }
 
-.evr-settings__locale-btn:hover {
-  background: var(--evr-bg-hover);
-}
-
-.evr-settings__locale-btn[aria-pressed='true'] {
-  background: var(--evr-bg-active);
-  font-weight: bold;
+.evr-scope select.evr-settings__select:focus-visible {
+  outline: 2px solid var(--evr-text);
+  outline-offset: 2px;
 }
 
 .evr-settings__row {

@@ -112,17 +112,16 @@ onBeforeUnmount(() => {
             <h4 class="evr-settings__subtitle">
               <Languages :size="14" aria-hidden="true" />{{ t('settings.language') }}
             </h4>
-            <div class="evr-settings__locale-row">
-              <button
-                v-for="option in localeOptions"
-                :key="option.value"
-                type="button"
-                class="evr-settings__locale-btn"
-                :aria-pressed="locale === option.value"
-                :lang="option.value"
-                @click="setLocaleChoice(option.value)"
-              >{{ option.label }}</button>
-            </div>
+            <select
+              class="evr-settings__select"
+              :value="locale"
+              :aria-label="t('settings.language')"
+              @change="setLocaleChoice(($event.target as HTMLSelectElement).value as Locale)"
+            >
+              <option v-for="option in localeOptions" :key="option.value" :value="option.value" :lang="option.value">
+                {{ option.label }}
+              </option>
+            </select>
           </section>
           <section class="evr-settings__section">
             <h4 class="evr-settings__subtitle">{{ t('settings.browsingSection') }}</h4>
