@@ -1,8 +1,8 @@
 export default {
-  "views.m": "最小模式",
-  "views.p": "最小模式+",
-  "views.l": "紧凑",
-  "views.t": "缩略图",
+  "views.m": "EVR 最小模式",
+  "views.p": "EVR 最小模式+",
+  "views.l": "EVR 紧凑",
+  "views.t": "EVR 缩略图",
   "select.group": "Eh View Refined 排版",
   "columns.published": "发布时间",
   "columns.title": "标题",

@@ -1,8 +1,8 @@
 export default {
-  "views.m": "Minimal",
-  "views.p": "Minimal+",
-  "views.l": "Compact",
-  "views.t": "Thumbnail",
+  "views.m": "EVR Minimal",
+  "views.p": "EVR Minimal+",
+  "views.l": "EVR Compact",
+  "views.t": "EVR Thumbnail",
   "select.group": "Eh View Refined レイアウト",
   "columns.published": "公開日時",
   "columns.title": "タイトル",
