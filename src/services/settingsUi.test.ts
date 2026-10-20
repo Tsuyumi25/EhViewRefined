@@ -56,6 +56,27 @@ describe('starting before the root element exists', () => {
   })
 })
 
+describe('keyboard focus while the settings are open', () => {
+  it('wraps Tab and Shift+Tab at the ends of the dialog instead of leaving for the page behind', () => {
+    stop = startSettingsHook()
+    const behind = document.createElement('button')
+    document.body.append(behind)
+    document.dispatchEvent(new Event(openSettingsEvent))
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button, input, select'))
+    const tab = (shiftKey: boolean) => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true }))
+
+    focusable.at(-1)!.focus()
+    tab(false)
+    expect(document.activeElement).toBe(focusable[0])
+    tab(true)
+    expect(document.activeElement).toBe(focusable.at(-1))
+    behind.focus()
+    tab(false)
+    expect(document.activeElement).toBe(focusable[0])
+  })
+})
+
 // The lock itself is a settings.css rule, which vitest does not load; what matters here is that body's inline style stays someone else's
 describe('locking the page while the settings are open', () => {
   it('never writes body’s inline overflow, whichever side closes first', () => {

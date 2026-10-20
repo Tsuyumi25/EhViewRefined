@@ -55,8 +55,31 @@ let unsubscribers: (() => void)[] = []
 // We mark only our own attribute and let settings.css do the locking
 const scrollLockAttribute = 'data-evr-scroll-locked'
 
+const focusableSelector = 'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'
+
+// aria-modal tells assistive technology the page behind is out of reach, so Tab has to agree
+function keepFocusInside(event: KeyboardEvent) {
+  const root = dialog.value
+  if (!root) return
+  const focusable = Array.from(root.querySelectorAll<HTMLElement>(focusableSelector)).filter(node => !node.matches(':disabled'))
+  if (focusable.length === 0) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  const active = document.activeElement
+  const inside = active !== root && active instanceof Node && root.contains(active)
+  const leaving = event.shiftKey ? !inside || active === first : !inside || active === last
+  if (!leaving) return
+  event.preventDefault()
+  ;(event.shiftKey ? last : first).focus()
+}
+
 function onKeydown(event: KeyboardEvent) {
-  if (event.key !== 'Escape' || event.defaultPrevented) return
+  if (event.defaultPrevented) return
+  if (event.key === 'Tab') {
+    keepFocusInside(event)
+    return
+  }
+  if (event.key !== 'Escape') return
   event.preventDefault()
   event.stopPropagation()
   emit('close')
