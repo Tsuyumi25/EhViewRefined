@@ -50,6 +50,7 @@ function closeSettings() {
 /** source gets the focus back when the popup closes */
 function openSettings(source: Element | null) {
   if (overlay) return
+  installStyles(document)
   trigger = source instanceof HTMLElement ? source : null
   overlay = document.createElement('div')
   overlay.className = scopeClass()
@@ -59,9 +60,11 @@ function openSettings(source: Element | null) {
   overlayApp.mount(overlay)
 }
 
-/** Runs on every page from document-start, so a script that loads later always finds the listener in place */
+/**
+ * Runs on every page from document-start, so a script that loads later always finds the listener in place.
+ * The root element may not exist yet at that point, so the styles wait for the first thing that draws.
+ */
 export function startSettingsHook(): () => void {
-  installStyles(document)
   // The caller's own button still has the focus while its click handler dispatches
   const onOpen = () => openSettings(document.activeElement)
   document.addEventListener(openSettingsEvent, onOpen)
@@ -115,6 +118,7 @@ export function startSettingsLaunchers(): () => void {
         syncSize(select, launcher.host)
         continue
       }
+      installStyles(document)
       const host = document.createElement('span')
       host.className = `${scopeClass()} evr-settings-host`
       host.setAttribute(hostAttribute, '')

@@ -40,6 +40,22 @@ describe('opening the settings from another script', () => {
   })
 })
 
+// 管理器可能在 <html> 建立之前就注入，這時 head 與 documentElement 都還是 null
+describe('starting before the root element exists', () => {
+  it('keeps the listener and draws its styles once the settings open', () => {
+    const root = document.documentElement
+    root.remove()
+    try {
+      stop = startSettingsHook()
+    } finally {
+      document.append(root)
+    }
+    document.dispatchEvent(new Event(openSettingsEvent))
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull()
+    expect(document.getElementById('evr-settings-style')).not.toBeNull()
+  })
+})
+
 // The lock itself is a settings.css rule, which vitest does not load; what matters here is that body's inline style stays someone else's
 describe('locking the page while the settings are open', () => {
   it('never writes body’s inline overflow, whichever side closes first', () => {
