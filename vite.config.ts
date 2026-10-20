@@ -33,6 +33,8 @@ export default defineConfig(({ command }) => ({
         author: 'tsuyumi',
         license: 'MIT',
         icon: 'https://e-hentai.org/favicon.ico',
+        homepageURL: 'https://github.com/Tsuyumi25/EhViewRefined',
+        supportURL: 'https://github.com/Tsuyumi25/EhViewRefined/issues',
         'run-at': 'document-start',
       },
       build: { metaFileName: true },
