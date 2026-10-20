@@ -17,7 +17,10 @@ export interface ItemStrip extends WindowRange {
 }
 
 export interface ItemStripWriter extends ItemStrip {
-  /** Registers the next item, already placed in the listing; parked at once while the tail is hidden. */
+  /**
+   * Registers the next item, already placed in the listing; parked at once while the tail is hidden.
+   * A row rebuilt from saved markup may still carry the parked class, so a drawn item drops it here.
+   */
   push(node: HTMLElement): void
 }
 
@@ -40,8 +43,10 @@ export function createItemStrip(): ItemStripWriter {
       return index >= start && index < end ? nodes[index] : undefined
     },
     push(node) {
-      if (end === nodes.length) end++
-      else node.classList.add(PARKED_CLASS)
+      if (end === nodes.length) {
+        end++
+        node.classList.remove(PARKED_CLASS)
+      } else node.classList.add(PARKED_CLASS)
       nodes.push(node)
     },
     setRange(nextStart, nextEnd) {

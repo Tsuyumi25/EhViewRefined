@@ -58,4 +58,13 @@ describe('createItemStrip', () => {
     strip.setRange(0, strip.count)
     expect(drawn()).toEqual(range(0, 22))
   })
+
+  it('draws an item that arrives still parked from markup saved while it was off screen', () => {
+    const strip = createItemStrip()
+    const restored = document.createElement('div')
+    restored.classList.add(PARKED_CLASS)
+    strip.push(restored)
+    expect(strip.nodeAt(0)).toBe(restored)
+    expect(restored.classList.contains(PARKED_CLASS)).toBe(false)
+  })
 })
