@@ -35,6 +35,9 @@ export default defineConfig(({ command }) => ({
         icon: 'https://e-hentai.org/favicon.ico',
         homepageURL: 'https://github.com/Tsuyumi25/EhViewRefined',
         supportURL: 'https://github.com/Tsuyumi25/EhViewRefined/issues',
+        // The release branch always holds the latest build. Sleazy Fork rewrites both to itself for its own copy
+        updateURL: 'https://raw.githubusercontent.com/Tsuyumi25/EhViewRefined/release/dist/eh-view-refined.meta.js',
+        downloadURL: 'https://raw.githubusercontent.com/Tsuyumi25/EhViewRefined/release/dist/eh-view-refined.user.js',
         'run-at': 'document-start',
       },
       build: { metaFileName: true },
