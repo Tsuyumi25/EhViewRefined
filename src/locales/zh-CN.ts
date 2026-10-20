@@ -30,6 +30,7 @@ export default {
   "settings.infiniteScroll": "无限滚动",
   "settings.close": "关闭",
   "settings.language": "语言 / Language",
+  "settings.languageAuto": "跟随浏览器 / Browser",
   "settings.tagsSection": "标签",
   "settings.allMyTags": "显示完整的 My Tags 标签",
   "settings.allOtherTags": "显示完整的非 My Tags 标签",

@@ -30,6 +30,7 @@ export default {
   "settings.infiniteScroll": "무한 스크롤",
   "settings.close": "닫기",
   "settings.language": "언어 / Language",
+  "settings.languageAuto": "브라우저 언어 / Browser",
   "settings.tagsSection": "태그",
   "settings.allMyTags": "My Tags 태그를 모두 표시",
   "settings.allOtherTags": "나머지 태그를 모두 표시",

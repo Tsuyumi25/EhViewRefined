@@ -5,6 +5,17 @@ export function isLocale(value: unknown): value is Locale {
   return locales.includes(value as Locale)
 }
 
+/** A language the reader picked, or 'auto' to follow the browser's preference. */
+export type LocaleChoice = Locale | 'auto'
+
+export function isLocaleChoice(value: unknown): value is LocaleChoice {
+  return value === 'auto' || isLocale(value)
+}
+
+export function resolveLocale(choice: LocaleChoice, languages: readonly string[]): Locale {
+  return choice === 'auto' ? detectLocale(languages) : choice
+}
+
 export function detectLocale(languages: readonly string[]): Locale {
   for (const language of languages) {
     const parts = language.toLowerCase().split('-')

@@ -5,7 +5,7 @@ import {
   GM_removeValueChangeListener,
 } from '$'
 import type { GmValueListenerId } from '$'
-import { detectLocale, isLocale, type Locale } from './locale'
+import { isLocaleChoice, type LocaleChoice } from './locale'
 
 /** parse turns whatever is stored (nothing, or a value from another version) into a usable value */
 function createSetting<T extends string | boolean>(key: string, parse: (raw: unknown) => T) {
@@ -94,10 +94,11 @@ export const {
   subscribe: subscribeInfiniteScroll,
 } = createBooleanSetting(infiniteScrollKey, true)
 
-// Until a language is picked the browser's preference decides, so it can still change with the browser
+// 'auto' until a language is picked, so the interface still changes with the browser; picking the language the
+// browser already gives is a choice of its own and stays put
 export const localeKey = 'ehe:locale'
 export const {
   get: getLocaleChoice,
   set: setLocaleChoice,
   subscribe: subscribeLocaleChoice,
-} = createSetting<Locale>(localeKey, raw => isLocale(raw) ? raw : detectLocale(navigator.languages))
+} = createSetting<LocaleChoice>(localeKey, raw => isLocaleChoice(raw) ? raw : 'auto')

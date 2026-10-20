@@ -30,6 +30,7 @@ export default {
   "settings.infiniteScroll": "無限スクロール",
   "settings.close": "閉じる",
   "settings.language": "言語 / Language",
+  "settings.languageAuto": "ブラウザーの言語 / Browser",
   "settings.tagsSection": "タグ",
   "settings.allMyTags": "My Tags のタグをすべて表示",
   "settings.allOtherTags": "その他のタグをすべて表示",

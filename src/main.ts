@@ -10,11 +10,12 @@ import {
   subscribeLocaleChoice, subscribeUploaderTag,
 } from '@/services/settings'
 import { setLocale } from '@/composables/useI18n'
+import { resolveLocale } from '@/services/locale'
 
 announcePresence(document, __APP_VERSION__)
 // Before anything writes text into the page, so the first render is already in the chosen language
-setLocale(getLocaleChoice())
-const stopObservingLocale = subscribeLocaleChoice(next => setLocale(next))
+setLocale(resolveLocale(getLocaleChoice(), navigator.languages))
+const stopObservingLocale = subscribeLocaleChoice(next => setLocale(resolveLocale(next, navigator.languages)))
 const stopSettingsHook = startSettingsHook()
 const stopSettingsMenu = startSettingsMenu()
 // Read before anything rewrites the address or the scroll restoration, so turning infinite scroll off and on

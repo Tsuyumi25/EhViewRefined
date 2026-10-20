@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { Languages, Tags, X } from '@lucide/vue'
-import { locale, t } from '@/composables/useI18n'
-import type { Locale } from '@/services/locale'
+import { t } from '@/composables/useI18n'
+import type { LocaleChoice } from '@/services/locale'
 import {
   getAllMyTags, setAllMyTags, subscribeAllMyTags,
   getAllOtherTags, setAllOtherTags, subscribeAllOtherTags,
   getInfiniteScroll, setInfiniteScroll, subscribeInfiniteScroll,
   getGroupTags, setGroupTags, subscribeGroupTags,
   getUploaderTag, setUploaderTag, subscribeUploaderTag,
-  setLocaleChoice,
+  getLocaleChoice, setLocaleChoice, subscribeLocaleChoice,
 } from '@/services/settings'
 
 const emit = defineEmits<{ close: [] }>()
@@ -39,13 +39,14 @@ const tags = [
 ]
 
 // Each language is named in itself: someone stuck in a language they cannot read still finds their own
-const localeOptions: { value: Locale; label: string }[] = [
+const localeOptions: { value: LocaleChoice; label: string }[] = [
   { value: 'zh-TW', label: '繁體中文' },
   { value: 'zh-CN', label: '简体中文' },
   { value: 'en', label: 'English' },
   { value: 'ja', label: '日本語' },
   { value: 'ko', label: '한국어' },
 ]
+const localeChoice = ref<LocaleChoice>(getLocaleChoice())
 
 const dialog = ref<HTMLElement | null>(null)
 let unsubscribers: (() => void)[] = []
@@ -74,6 +75,9 @@ function onToggle(entry: Toggle, event: Event) {
 onMounted(() => {
   unsubscribers = [...browsing, ...tags].map(entry => entry.subscribe(value => {
     entry.value.value = value
+  }))
+  unsubscribers.push(subscribeLocaleChoice(value => {
+    localeChoice.value = value
   }))
   document.addEventListener('keydown', onKeydown, true)
   document.documentElement.setAttribute(scrollLockAttribute, '')
@@ -118,10 +122,11 @@ onBeforeUnmount(() => {
             </h4>
             <select
               class="evr-settings__select"
-              :value="locale"
+              :value="localeChoice"
               :aria-label="t('settings.language')"
-              @change="setLocaleChoice(($event.target as HTMLSelectElement).value as Locale)"
+              @change="setLocaleChoice(($event.target as HTMLSelectElement).value as LocaleChoice)"
             >
+              <option value="auto">{{ t('settings.languageAuto') }}</option>
               <option v-for="option in localeOptions" :key="option.value" :value="option.value" :lang="option.value">
                 {{ option.label }}
               </option>

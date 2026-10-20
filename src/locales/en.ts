@@ -30,6 +30,7 @@ export default {
   "settings.infiniteScroll": "Infinite scrolling",
   "settings.close": "Close",
   "settings.language": "Language",
+  "settings.languageAuto": "Browser language",
   "settings.tagsSection": "Tags",
   "settings.allMyTags": "Show every My Tags tag",
   "settings.allOtherTags": "Show every other tag",
