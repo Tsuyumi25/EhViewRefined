@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from 'vitest'
-import { pagesByGid, positionUrl } from './liveUrl'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ListingPipeline } from '../listingPipeline'
+import { pagesByGid, positionUrl, startLiveUrl } from './liveUrl'
 
 /** The site's two search bars, in document order; the end the reader cannot go to is a bare span. */
 function nav(prev: string | null, next: string | null): ParentNode {
@@ -40,5 +41,31 @@ describe('positionUrl', () => {
     const url = new URL(positionUrl('https://e-hentai.org/tag/x?prev=3000000&jump=1w&seek=2024-01-01&range=5&inline_set=dm_e', '2999950'))
     expect([...url.searchParams.keys()]).toEqual(['next'])
     expect(url.pathname).toBe('/tag/x')
+  })
+})
+
+describe('startLiveUrl', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    document.body.replaceChildren()
+  })
+
+  // 關掉再打開無限滾動時，history 已經是上一輪留下的 manual
+  it('hands the browser its own scroll restoration back at the first gallery, even after a restart', () => {
+    vi.useFakeTimers()
+    document.body.innerHTML = '<a id="unext" href="/?next=500"></a>'
+    const href = location.href
+    history.replaceState(null, '', '/?next=101')
+    history.scrollRestoration = 'manual'
+    const first = { getBoundingClientRect: () => ({ bottom: 10 }) } as HTMLElement
+    const presentation = { element: document.body, strip: { start: 0, end: 1, nodeAt: () => first } } as unknown as ListingPipeline
+
+    const stop = startLiveUrl(presentation, { href, scrollRestoration: 'auto' })
+    window.dispatchEvent(new Event('scroll'))
+    vi.advanceTimersByTime(250)
+    stop()
+
+    expect(location.href).toBe(href)
+    expect(history.scrollRestoration).toBe('auto')
   })
 })

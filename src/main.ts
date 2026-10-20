@@ -17,8 +17,9 @@ setLocale(getLocaleChoice())
 const stopObservingLocale = subscribeLocaleChoice(next => setLocale(next))
 const stopSettingsHook = startSettingsHook()
 const stopSettingsMenu = startSettingsMenu()
-// Read before anything rewrites the address, so turning infinite scroll off and on still knows where the page began
-const origin = location.href
+// Read before anything rewrites the address or the scroll restoration, so turning infinite scroll off and on
+// still knows where the page began and how the browser restored it
+const origin = { href: location.href, scrollRestoration: history.scrollRestoration }
 
 let stopPagination: (() => void) | undefined
 let stopWindow: (() => void) | undefined

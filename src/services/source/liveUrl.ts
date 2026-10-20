@@ -29,16 +29,21 @@ export function positionUrl(href: string, gid: string): string {
   return url.toString()
 }
 
+/** The address the page was opened at, and how the browser was restoring its scroll then. */
+export interface PageOrigin {
+  href: string
+  scrollRestoration: ScrollRestoration
+}
+
 /**
  * Keeps the address on the gallery at the top of the viewport, so a reload,
  * a shared link or a return to an evicted page starts there. Back at the first
  * gallery the original address returns, which still lists what was posted since.
  */
-export function startLiveUrl(presentation: ListingPipeline, origin: string): () => void {
+export function startLiveUrl(presentation: ListingPipeline, origin: PageOrigin): () => void {
   const doc = presentation.element.ownerDocument
   const win = doc.defaultView!
   if (!pagesByGid(doc)) return () => {}
-  const restoration = win.history.scrollRestoration
   let written = win.location.href
   let timer = 0
 
@@ -56,11 +61,11 @@ export function startLiveUrl(presentation: ListingPipeline, origin: string): () 
     const top = topGallery()
     if (!top) return
     const key = top.index === 0 ? null : galleryKey(top.node)
-    const next = key ? positionUrl(origin, key.split('/')[0]) : origin
+    const next = key ? positionUrl(origin.href, key.split('/')[0]) : origin.href
     if (next === written) return
     // The saved offset belongs to the whole endless listing; a reload of the new address starts with this gallery,
     // so the browser restoring that offset would land far below it
-    win.history.scrollRestoration = next === origin ? restoration : 'manual'
+    win.history.scrollRestoration = next === origin.href ? origin.scrollRestoration : 'manual'
     win.history.replaceState(win.history.state, '', next)
     written = next
   }
