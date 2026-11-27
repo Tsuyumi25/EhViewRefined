@@ -3,6 +3,7 @@ import SettingsButton from '@/components/SettingsButton.vue'
 import SettingsPopup from '@/components/SettingsPopup.vue'
 import styles from '@/styles/settings.css?inline'
 import { findModeSelects, observeModeSelects } from './modeSelects'
+import { isVisible } from './visibility'
 
 /**
  * Other scripts open the settings with document.dispatchEvent(new Event(openSettingsEvent)).
@@ -24,12 +25,6 @@ function installStyles(doc: Document): void {
 
 function scopeClass(): string {
   return location.hostname === 'exhentai.org' ? 'evr-scope evr-scope--dark' : 'evr-scope'
-}
-
-function isVisible(select: HTMLSelectElement): boolean {
-  return typeof select.checkVisibility === 'function'
-    ? select.checkVisibility()
-    : select.offsetParent !== null
 }
 
 let overlay: HTMLElement | null = null

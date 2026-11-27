@@ -2,6 +2,7 @@ import { localizeText } from '@/composables/useI18n'
 import type { ListingPipeline } from '../listingPipeline'
 import { sourceSelector } from './extendedAdapter'
 import { nativeExtendedUrl } from '../viewRouting'
+import { isVisible } from '../visibility'
 
 export function startPagination(presentation: ListingPipeline): () => void {
   const doc = presentation.element.ownerDocument
@@ -47,9 +48,11 @@ export function startPagination(presentation: ListingPipeline): () => void {
   }
 
   // The sentinel sits below the bottom spacer, so it only comes near once the reader is at the true end,
-  // even while the window still has the tail parked; it fires only on entering, so no call may be turned away
+  // even while the window still has the tail parked; it fires only on entering, so no call may be turned away.
+  // A sentinel that is not rendered is not near either: another script hiding the listing (a history view drawn
+  // in its place) leaves its rect at zero, which would otherwise read as "at the end" and fetch every page there is
   async function load() {
-    if (loading || disposed || !next) return
+    if (loading || disposed || !next || !isVisible(bottom)) return
     loading = true
     try {
       do {
@@ -64,7 +67,7 @@ export function startPagination(presentation: ListingPipeline): () => void {
         visited.add(url)
         next = nextUrl(page, base)
         updateNextLinks(page)
-      } while (next && !disposed && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
+      } while (next && !disposed && isVisible(bottom) && bottom.getBoundingClientRect().top <= win.innerHeight + 400)
       if (!next) observer.disconnect()
     } catch (error) {
       if (!disposed) {
